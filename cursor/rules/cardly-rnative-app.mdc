@@ -1,0 +1,19 @@
+---
+description: Conventions for the Cardly Expo client (sibling repo C:/projects/cardly/cardly-rnative-app)
+alwaysApply: true
+---
+
+# Cardly React Native (Expo) client
+
+The mobile app lives in **`C:/projects/cardly/cardly-rnative-app`**. When coordinating API contracts, auth, or mobile UX with this backend, apply the sections below to that codebase.
+
+## Language and locale
+
+- **Project** material under `docs/agents/` in the mobile repo, academic report text, and user-facing documentation where applicable: **pt-BR**.
+- **Source code** (identifiers, developer-facing strings, tests), **Git commit messages**, **Cursor rules**, and **agent instructions**: **en-US**.
+- **In-app UI copy** for end users in the mobile app: **pt-BR** unless the product standardizes on another locale later.
+
+## Code and commits
+
+- **Do not add comments** in source code (TypeScript, JavaScript, etc.). Prefer clear names and small functions.
+- **Do not use emojis** in **git commit messages** or suggested merge/PR titles.

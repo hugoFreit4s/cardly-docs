@@ -1,0 +1,76 @@
+\chapter{Conclusão}
+\label{cap:conclusao}
+
+\section{Síntese do trabalho}
+
+O Cardly consolidou um ecossistema de estudo mobile integrado a API REST, atendendo ao objetivo central da disciplina: demonstrar domínio da integração React Native (Expo/TypeScript) com Spring Boot (Java) em arquitetura cliente-servidor \cite{react_native_docs,spring_boot_docs,tanenbaum2015}.
+
+Principais entregas técnicas:
+\begin{itemize}
+    \item Autenticação JWT com suporte a Google SSO e perfil superadministrador \cite{jwt_io,google_oauth}.
+    \item CRUD completo de assuntos e cartas com busca paginada via Specification \cite{jpa_specification}.
+    \item Regras de revisão espaçada implementadas no \texttt{CardService}, com intervalos de 1 a 9 dias \cite{anki_manual,medium_spaced_repetition}.
+    \item Front-end com NativeWind, flip animado, toasts e modais \cite{nativewind_docs,w3schools_flip}.
+    \item Preparação para deploy em Railway e build mobile via EAS \cite{railway_docs,expo_eas_build}.
+\end{itemize}
+
+\section{Atendimento aos critérios de avaliação}
+
+Conforme mapeamento do Capítulo~\ref{cap:objetivos} (Tabela~\ref{tab:criterios-avaliacao}), o projeto cobre:
+\begin{itemize}
+    \item Integração front-back: evidenciada nos capítulos de arquitetura, backend e frontend.
+    \item Segurança: JWT, BCrypt, roles e SecureStore (Capítulo~\ref{cap:seguranca}).
+    \item Organização de código: padrões 1.0, 1.1 e 2.0 documentados.
+    \item UX: sessão de estudo fluida, paleta consistente, feedback ao usuário.
+    \item Produção: variáveis de ambiente, migrations e checklist de deploy.
+\end{itemize}
+
+\section{Limitações identificadas}
+
+\begin{enumerate}
+    \item Calendário visual no dashboard ainda parcial (RF13).
+    \item Módulo de amizades não implementado (RF14).
+    \item Ausência de refresh token JWT; sessão expira em uma hora.
+    \item Cobertura automatizada limitada no front-end mobile.
+    \item Rate limiting e monitoramento avançado não implementados.
+\end{enumerate}
+
+Limitações são aceitáveis no recorte de MVP acadêmico, mas devem ser explicitadas na arguição.
+
+\section{Trabalhos futuros}
+
+\begin{itemize}
+    \item Concluir calendário estilo Clue com heatmap mensal \cite{clue_app}.
+    \item Implementar solicitações de amizade e compartilhamento social de decks.
+    \item Adicionar notificações push (Expo Notifications) para cartas vencidas.
+    \item Expandir testes E2E com Detox ou Maestro.
+    \item Publicar OpenAPI via springdoc para documentação interativa \cite{openapi_springdoc}.
+    \item Modo escuro completo utilizando tokens \texttt{background.dark}.
+    \item Sincronização offline com fila de respostas (desafio avançado mobile).
+\end{itemize}
+
+\section{Aprendizados da equipe}
+
+Estudantes do sétimo semestre reportaram curva de aprendizado significativa em:
+\begin{itemize}
+    \item Configuração de JWT end-to-end \cite{youtube_jwt_explained,stackoverflow_jwt_spring}.
+    \item Animações nativas com Reanimated \cite{reanimated_docs,youtube_expo_typescript}.
+    \item Specification JPA para filtros dinâmicos \cite{jpa_specification}.
+    \item Disciplina de variáveis de ambiente e deploy \cite{twelve_factor,railway_docs}.
+\end{itemize}
+
+Vídeos e artigos citados ao longo deste relatório \cite{youtube_spring_boot_api,medium_spaced_repetition} foram recursos pedagógicos essenciais.
+
+\section{Considerações finais}
+
+O Cardly demonstra que flashcards com revisão espaçada constituem domínio adequado para aplicação mobile com regras de negócio não triviais, indo além de CRUD superficial exigido em projetos introdutórios. A documentação formal em ABNT \cite{abnt_nbr14724,abnt_nbr6023}, aliada à demonstração funcional integrada, prepara a equipe para apresentação prática e arguição técnica previstas na metodologia da disciplina.
+
+A versão final deste relatório depende da inserção de figuras reais (prints, diagramas), revisão ortográfica por três revisores (dois com modelo Opus conforme planejamento interno), dados do orientador na capa e compilação PDF via Overleaf ou LaTeX local com fonte Times New Roman conforme manual UNILESTE.
+
+\section{Referências aos repositórios}
+
+Código-fonte e histórico de desenvolvimento:
+\begin{itemize}
+    \item Backend: \url{https://github.com/hugoFreit4s/cardly-backend} \cite{cardly_backend_repo}
+    \item Frontend: \url{https://github.com/hugoFreit4s/cardly-rnative-app} \cite{cardly_frontend_repo}
+\end{itemize}

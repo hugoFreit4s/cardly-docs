@@ -1,0 +1,97 @@
+\chapter{Requisitos}
+\label{cap:requisitos}
+
+\section{Requisitos funcionais}
+
+Os requisitos funcionais do MVP foram derivados do enunciado acadêmico, do documento \textit{Flashcards.pdf} e do arquivo \texttt{todo.md}. A Tabela~\ref{tab:rf-funcionais} consolida o estado de implementação conhecido na redação deste relatório.
+
+\begin{longtable}{p{1.2cm} p{7.5cm} p{2.5cm} p{2.3cm}}
+    \caption{Requisitos funcionais do Cardly} \label{tab:rf-funcionais} \\
+    \toprule
+    \textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Status} \\
+    \midrule
+    \endfirsthead
+    \toprule
+    \textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Status} \\
+    \midrule
+    \endhead
+    RF01 & Criar conta de usuário & Alta & Implementado \\
+    RF02 & Autenticar-se (login) & Alta & Implementado \\
+    RF03 & Excluir própria conta & Alta & Implementado \\
+    RF04 & CRUD de assuntos (\textit{decks}) & Alta & Implementado \\
+    RF05 & Definir assunto público ou privado & Alta & Implementado \\
+    RF06 & CRUD de cartas & Alta & Implementado \\
+    RF07 & Responder carta (certo/errado) & Alta & Implementado \\
+    RF08 & Pular carta na sessão de estudo & Alta & Implementado \\
+    RF09 & Visualizar dashboard de progresso & Alta & Implementado \\
+    RF10 & Revisar carta após intervalo & Alta & Implementado \\
+    RF11 & Visualizar assuntos da comunidade & Média & Implementado \\
+    RF12 & Clonar assunto público & Média & Implementado \\
+    RF13 & Calendário de dias com estudo & Alta & Parcial \\
+    RF14 & Solicitações de amizade & Baixa & Pendente \\
+    RF15 & Admin: gerenciar usuários & Alta & Implementado \\
+    RF16 & Admin: gerenciar assuntos e cartas & Alta & Implementado \\
+    \bottomrule
+    \multicolumn{4}{p{\linewidth}}{\footnotesize Fonte: elaborado pelos autores. Status sujeito a atualização conforme sprint final.}
+\end{longtable}
+
+\subsection{Regras de negócio: revisão espaçada}
+
+O professor exige intervalo em dias entre tentativas conforme dificuldade da carta, calculada pelo sistema --- não pelo usuário \cite{anki_manual,anki_sm2}. O Cardly implementa níveis \texttt{NONE}, \texttt{EASY}, \texttt{MEDIUM} e \texttt{HARD}, com intervalos discretos de 1, 2, 3, 5, 7 e 9 dias \cite{medium_spaced_repetition}.
+
+Regras principais:
+\begin{itemize}
+    \item Carta nova respondida corretamente torna-se \texttt{EASY} com revisão em 5 dias; incorreta torna-se \texttt{MEDIUM} com 3 dias.
+    \item Em \texttt{EASY}, acertos consecutivos ampliam o intervalo até 9 dias; erros reduzem gradualmente o intervalo ou rebaixam para \texttt{MEDIUM}.
+    \item Em \texttt{HARD}, erros reduzem intervalo para 1 dia; acertos promovem recuperação gradual para \texttt{MEDIUM}.
+    \item Carta com \texttt{dueAt} futuro não pode ser respondida antes da data; após o vencimento, a resposta reagenda conforme desempenho.
+\end{itemize}
+
+A especificação completa encontra-se documentada internamente em \texttt{card-difficulty-level-rules.md} no repositório backend.
+
+\subsection{Requisito de calendário}
+
+O dashboard deve destacar dias em que o usuário respondeu cartas, com visual inspirado em aplicativos de controle de ciclo como o Clue \cite{clue_app}. A contagem baseia-se em registros de cartas atualizadas com intervalo agendado no dia. A interface visual do calendário permanece em refinamento (RF13 parcial).
+
+\section{Requisitos técnicos}
+
+\begin{longtable}{p{1.2cm} p{8cm} p{3.3cm}}
+    \caption{Requisitos técnicos do MVP} \label{tab:rf-tecnicos} \\
+    \toprule
+    \textbf{ID} & \textbf{Descrição} & \textbf{Status} \\
+    \midrule
+    \endfirsthead
+    RT01 & Autenticação JWT + Google SSO & Implementado \\
+    RT02 & Estrutura de pastas backend padrão 1.0 & Implementado \\
+    RT03 & Nomenclatura de arquivos padrão 1.1 & Implementado \\
+    RT04 & Respostas paginadas (\texttt{PagedResponse}) & Implementado \\
+    RT05 & Busca via \texttt{/search} + Specification & Implementado \\
+    RT06 & Paleta de cores padrão 2.0 no front-end & Implementado \\
+    RT07 & Modais de confirmação e toasts & Implementado \\
+    RT08 & Estilização com NativeWind & Implementado \\
+    RT09 & PostgreSQL + Flyway migrations & Implementado \\
+    RT10 & Soft delete (\texttt{deletedAt}) em entidades & Implementado \\
+    \bottomrule
+\end{longtable}
+
+\section{Requisitos não funcionais}
+
+\begin{itemize}
+    \item \textbf{Desempenho}: paginação padrão de 20 itens; consultas indexadas por usuário e deck.
+    \item \textbf{Usabilidade}: feedback imediato via toast; confirmação antes de exclusões destrutivas \cite{mobile_first_nielsen}.
+    \item \textbf{Manutenibilidade}: separação Controller/Service/Repository; DTOs imutáveis com \textit{records} Java \cite{java_records_spring}.
+    \item \textbf{Portabilidade}: Expo permite builds Android/iOS; API independente de plataforma \cite{expo_eas_build}.
+    \item \textbf{Segurança}: senhas com BCrypt; tokens com expiração; rotas admin restritas a \texttt{SUPERADMIN} \cite{bcrypt_spring,owasp_mobile}.
+\end{itemize}
+
+\section{Perfis de usuário}
+
+Conforme requisitos acadêmicos institucionais, o sistema prevê perfis distintos:
+\begin{description}
+    \item[Estudante] Usuário padrão: gerencia próprios assuntos, estuda cartas, acessa comunidade e dashboard.
+    \item[Superadministrador] Acessa \texttt{AdminScreen} exclusiva no app e endpoints \texttt{/api/admin/**} protegidos por role \cite{spring_security_jwt}.
+\end{description}
+
+\section{Rastreabilidade}
+
+Cada requisito funcional mapeia-se a endpoints e telas específicas, detalhados nos Capítulos~\ref{cap:backend} e~\ref{cap:frontend}. Requisitos pendentes (RF13 completo, RF14) devem constar no plano de trabalhos futuros (Capítulo~\ref{cap:conclusao}).

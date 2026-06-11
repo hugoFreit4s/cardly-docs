@@ -1,0 +1,102 @@
+\chapter{Segurança}
+\label{cap:seguranca}
+
+\section{Visão geral}
+
+A segurança do Cardly combina autenticação forte, autorização baseada em papéis, comunicação protegida e boas práticas para aplicativos móveis \cite{owasp_mobile,spring_security_jwt,jwt_io}. Este capítulo atende ao critério de avaliação sobre implementação adequada de segurança.
+
+\section{Autenticação}
+
+\subsection{Credenciais locais}
+
+Senhas nunca são armazenadas em texto claro. O backend utiliza \texttt{BCryptPasswordEncoder} com fator padrão Spring Security \cite{bcrypt_spring}. No registro, \texttt{AuthService} aplica hash antes de persistir \texttt{User.passwordHash}.
+
+\subsection{JSON Web Token (JWT)}
+
+Após login válido, o servidor emite JWT assinado com segredo configurável (\texttt{cardly.jwt.secret}). Claims incluem identificador do usuário e role. Expiração padrão: 3600 segundos (1 hora), configurável \cite{jwt_io,youtube_jwt_explained}.
+
+O filtro \texttt{JwtAuthenticationFilter} valida token em cada requisição autenticada, mantendo API stateless \cite{spring_security_jwt,stackoverflow_jwt_spring}.
+
+\subsection{Google Single Sign-On (SSO)}
+
+Fluxo OAuth 2.0 \cite{google_oauth}:
+\begin{enumerate}
+    \item App obtém ID token via SDK Google/Expo (configuração \texttt{cardly.google.client-id}).
+    \item Backend valida audiência e emissor do token.
+    \item Usuário existente autentica; novo e-mail pode gerar registro automático conforme regra de negócio.
+\end{enumerate}
+
+\section{Autorização}
+
+\texttt{SecurityConfig} define regras:
+
+\begin{itemize}
+    \item \texttt{/api/auth/**}: público.
+    \item \texttt{/api/admin/**}: exige \texttt{ROLE\_SUPERADMIN}.
+    \item Demais rotas: autenticadas.
+\end{itemize}
+
+Serviços validam ownership: usuário comum só manipula decks/cartas próprios. Admin bypassa via endpoints dedicados auditáveis.
+
+\section{Proteção no cliente mobile}
+
+\begin{itemize}
+    \item Token JWT armazenado em \texttt{SecureStore}, não em AsyncStorage plain \cite{expo_secure_store}.
+    \item Logout remove token local e invalida sessão no contexto.
+    \item Telas admin ocultas por role, não apenas por rota deep link (defesa em profundidade com backend).
+\end{itemize}
+
+\section{Comunicação e CORS}
+
+Em produção, API exposta via HTTPS (Railway/AWS). CORS configurado para origens confiáveis do app e ferramentas de teste \cite{helmet_cors_spring}. CSRF desabilitado por API stateless JWT --- decisão documentada e comum em SPAs/mobile \cite{spring_security_jwt}.
+
+\section{Validação e tratamento de erros}
+
+\begin{itemize}
+    \item DTOs validados com Bean Validation (\texttt{@NotBlank}, \texttt{@Email}).
+    \item \texttt{ApiExceptionHandler} retorna HTTP semântico (400, 401, 403, 404) sem vazar stack trace.
+    \item Mensagens genéricas em falha de login (``credenciais inválidas'') mitigam enumeração de usuários.
+\end{itemize}
+
+\section{Segredos e configuração}
+
+Segredos não são versionados no Git. Em produção:
+\begin{itemize}
+    \item \texttt{JWT\_SECRET} com no mínimo 256 bits para HS256.
+    \item Credenciais PostgreSQL via variáveis do provedor \cite{twelve_factor,railway_docs}.
+    \item \texttt{GOOGLE\_CLIENT\_ID} distinto por ambiente (dev/prod).
+\end{itemize}
+
+\section{Soft delete e integridade}
+
+Exclusões lógicas preservam histórico e impedem reutilização indevida de IDs. Admin pode restaurar ou purgar conforme política futura.
+
+\section{Checklist OWASP Mobile (parcial)}
+
+\begin{table}[htbp]
+    \caption{Checklist de segurança mobile aplicado ao Cardly}
+    \label{tab:owasp}
+    \centering
+    \small
+    \begin{tabular}{p{5cm} p{8cm}}
+        \toprule
+        \textbf{Controle} & \textbf{Implementação} \\
+        \midrule
+        Armazenamento seguro de credenciais & SecureStore para JWT \\
+        Transporte criptografado & HTTPS em produção \\
+        Autenticação server-side & JWT validado no backend \\
+        Controle de acesso & Roles + ownership nos services \\
+        Validação de entrada & Bean Validation + tipos TS \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Referência: OWASP MASVS \cite{owasp_mobile}.
+
+\section{Riscos residuais}
+
+\begin{itemize}
+    \item Segredo JWT de desenvolvimento no \texttt{application.properties} local --- deve ser substituído em produção.
+    \item Rate limiting não implementado (aceitável para demo acadêmica; recomendado em produção real).
+    \item Refresh token ausente; usuário reautentica após expiração de 1h.
+\end{itemize}

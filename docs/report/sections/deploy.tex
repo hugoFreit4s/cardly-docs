@@ -1,0 +1,164 @@
+\chapter{Deploy e Produção}
+\label{cap:deploy}
+
+\section{Objetivo}
+
+O professor exige preparação para ambiente de produção, mesmo com operação temporária para apresentação \cite{twelve_factor,todo.md}. Este capítulo descreve arquitetura de deploy, variáveis de ambiente e procedimentos de build.
+
+\section{Topologia de produção proposta}
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\parbox{0.92\textwidth}{\centering
+    \vspace{0.4cm}
+    \textbf{[Figura 4 -- Topologia de deploy]}\\[0.3cm]
+    Dispositivo mobile $\rightarrow$ HTTPS $\rightarrow$ Railway (Spring Boot + PostgreSQL)\\
+    Expo EAS Build $\rightarrow$ APK/AAB instalável\\
+    Opcional: Vercel para landing ou painel web auxiliar\\
+    \vspace{0.4cm}
+    }}
+    \caption{Infraestrutura de produção do Cardly}
+    \label{fig:deploy-topologia}
+\end{figure}
+
+Componentes \cite{railway_docs,vercel_docs,aws_free_tier,expo_eas_build}:
+\begin{itemize}
+    \item \textbf{Backend}: container Java executando JAR Spring Boot.
+    \item \textbf{Banco}: PostgreSQL gerenciado (Railway plugin ou AWS RDS free tier).
+    \item \textbf{Mobile}: binário Android via EAS Build; Expo Go apenas em desenvolvimento.
+    \item \textbf{Front web opcional}: Vercel para documentação ou página de download.
+\end{itemize}
+
+\section{Configuração por ambiente}
+
+Princípio twelve-factor: configuração via ambiente, não via código \cite{twelve_factor}.
+
+\subsection{Backend (Railway)}
+
+Variáveis obrigatórias:
+
+\begin{table}[htbp]
+    \caption{Variáveis de ambiente do backend em produção}
+    \label{tab:env-backend}
+    \centering
+    \small
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Variável} & \textbf{Descrição} \\
+        \midrule
+        SPRING\_DATASOURCE\_URL & JDBC PostgreSQL \\
+        SPRING\_DATASOURCE\_USERNAME & Usuário BD \\
+        SPRING\_DATASOURCE\_PASSWORD & Senha BD \\
+        CARDLY\_JWT\_SECRET & Segredo HS256 (256+ bits) \\
+        CARDLY\_JWT\_EXPIRATION\_SECONDS & TTL token (ex.: 3600) \\
+        CARDLY\_GOOGLE\_CLIENT\_ID & Client ID OAuth Google \\
+        SERVER\_PORT & Porta exposta (Railway injeta) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Flyway executa migrations no startup \cite{flyway_docs}. Health check em \texttt{/actuator/health} (se habilitado).
+
+\subsection{Frontend mobile (Expo)}
+
+\begin{table}[htbp]
+    \caption{Variáveis públicas do app Expo}
+    \label{tab:env-frontend}
+    \centering
+    \small
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Variável} & \textbf{Descrição} \\
+        \midrule
+        EXPO\_PUBLIC\_API\_URL & URL base HTTPS da API Railway \\
+        EXPO\_PUBLIC\_GOOGLE\_CLIENT\_ID & Client ID para login Google \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Rebuild obrigatório após alterar variáveis \texttt{EXPO\_PUBLIC\_*} \cite{expo_docs}.
+
+\section{Pipeline de deploy do backend}
+
+Procedimento resumido \cite{railway_docs}:
+\begin{enumerate}
+    \item Conectar repositório GitHub \texttt{cardly-backend} ao Railway.
+    \item Adicionar serviço PostgreSQL e vincular \texttt{DATABASE\_URL}.
+    \item Configurar variáveis da Tabela~\ref{tab:env-backend}.
+    \item Deploy automático a cada push na branch principal.
+    \item Validar logs: Flyway migrations OK, Tomcat started.
+\end{enumerate}
+
+Alternativa AWS Free Tier \cite{aws_free_tier}: EC2 t2.micro + RDS PostgreSQL, com maior overhead operacional.
+
+\section{Build mobile para demonstração}
+
+\begin{enumerate}
+    \item Instalar EAS CLI: \texttt{npm install -g eas-cli}.
+    \item Configurar \texttt{eas.json} com profile \texttt{preview} (APK).
+    \item Executar \texttt{eas build -p android --profile preview} \cite{expo_eas_build}.
+    \item Distribuir APK via link Expo ou USB na apresentação.
+\end{enumerate}
+
+Para iOS, necessário Apple Developer (opcional no escopo Android-first da equipe).
+
+\section{CORS e rede}
+
+Backend deve permitir origem do app. Em APIs mobile puras, CORS afeta menos chamadas nativas, mas permanece relevante para testes web e ferramentas \cite{helmet_cors_spring}. Recomenda-se lista explícita de origens, não wildcard em produção.
+
+\section{Monitoramento e logs}
+
+Railway exibe logs stdout/stderr. Métricas básicas: latência, taxa de 5xx, uso de memória JVM. Para demo acadêmica, monitoramento avançado (Prometheus/Grafana) é opcional.
+
+\section{Plano de rollback}
+
+\begin{itemize}
+    \item Railway permite redeploy de release anterior.
+    \item Migrations Flyway devem ser backward-compatible ou acompanhadas de scripts de reversão.
+    \item APK anterior mantido localmente como fallback na apresentação.
+\end{itemize}
+
+\section{Checklist pré-apresentação}
+
+\begin{enumerate}
+    \item API pública respondendo \texttt{GET /api/me} com token válido.
+    \item Banco populado com dados de demonstração (usuário admin + decks exemplo).
+    \item APK compilado com \texttt{EXPO\_PUBLIC\_API\_URL} de produção.
+    \item Segredo JWT de produção diferente do desenvolvimento.
+    \item Google OAuth configurado com SHA-1 do keystore de release.
+    \item Teste completo T01--T09 (Capítulo~\ref{cap:testes}) em rede móvel (4G/Wi-Fi).
+\end{enumerate}
+
+\section{Descomissionamento}
+
+Conforme escopo acadêmico, após apresentação a equipe pode:
+\begin{itemize}
+    \item Desativar serviço Railway e banco.
+    \item Revogar client IDs OAuth de teste.
+    \item Manter repositórios públicos como portfólio.
+\end{itemize}
+
+\section{Production readiness -- síntese}
+
+\begin{table}[htbp]
+    \caption{Matriz de prontidão para produção}
+    \label{tab:production-readiness}
+    \centering
+    \footnotesize
+    \begin{tabular}{p{3.5cm} p{2cm} p{7cm}}
+        \toprule
+        \textbf{Aspecto} & \textbf{Status} & \textbf{Observação} \\
+        \midrule
+        Config externalizada & OK & Env vars Railway/Expo \\
+        Migrations versionadas & OK & Flyway \\
+        Autenticação segura & Parcial & Falta refresh token \\
+        HTTPS & OK & Railway default \\
+        Build reprodutível & OK & Maven + EAS \\
+        Observabilidade & Básico & Logs Railway \\
+        Rate limiting & Pendente & Aceitável para demo \\
+        Backup BD & Manual & Snapshot Railway pré-demo \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Referências: The Twelve-Factor App \cite{twelve_factor}; documentação Railway e Expo \cite{railway_docs,expo_eas_build}.

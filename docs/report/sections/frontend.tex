@@ -1,0 +1,143 @@
+\chapter{Implementação do Front-End}
+\label{cap:frontend}
+
+\section{Stack tecnológica}
+
+O front-end utiliza React Native 0.81, Expo SDK 54, TypeScript 5.9, React Navigation 7, NativeWind 4 e React Native Reanimated \cite{react_native_docs,expo_docs,typescript_handbook,nativewind_docs,reanimated_docs}. Código em \texttt{cardly-rnative-app} \cite{cardly_frontend_repo}.
+
+\section{Estrutura de pastas}
+
+\begin{verbatim}
+src/
+├── api/           authApi, decksApi, dashboardApi, communityApi, adminApi
+├── auth/          AuthContext.tsx
+├── components/
+│   ├── study/     FlipCard.tsx
+│   └── ui/        ConfirmModal.tsx, toast.ts
+├── navigation/    AuthStack, AppStack
+├── screens/       Login, Register, Decks, Study, Dashboard, Admin...
+└── theme/         colors.ts (paleta 2.0)
+\end{verbatim}
+
+Separação alinhada ao critério de avaliação sobre organização e responsabilidades \cite{clean_architecture_martin,react_hooks_docs}.
+
+\section{Navegação e fluxos}
+
+\subsection{Pilha de autenticação}
+
+\texttt{AuthStack} contém \texttt{LoginScreen} e \texttt{RegisterScreen}. Após login bem-sucedido, \texttt{AuthContext} alterna para \texttt{AppStack}.
+
+\subsection{Pilha principal}
+
+\texttt{AppStack} agrupa:
+\begin{itemize}
+    \item \texttt{DashboardScreen}: hub com métricas e atalhos.
+    \item \texttt{DecksScreen} / \texttt{DeckDetailScreen}: CRUD de assuntos e cartas.
+    \item \texttt{StudySessionScreen}: sessão de estudo com flip e botões certo/errado/pular.
+    \item \texttt{CommunityScreen}: assuntos públicos e clonagem.
+    \item \texttt{AdminScreen}: visível apenas para \texttt{SUPERADMIN}.
+\end{itemize}
+
+React Navigation gerencia histórico e tipagem de parâmetros via \texttt{AppStackParamList} \cite{react_navigation}.
+
+\section{Integração com API}
+
+Cada módulo \texttt{*Api.ts} encapsula \texttt{fetch} \cite{mdn_fetch}:
+
+\begin{enumerate}
+    \item Monta URL base a partir de \texttt{EXPO\_PUBLIC\_API\_URL}.
+    \item Injeta header \texttt{Authorization} quando autenticado.
+    \item Serializa body JSON em POST/PUT/PATCH.
+    \item Deserializa \texttt{PagedResponse} ou lança erro interpretado pela UI.
+\end{enumerate}
+
+Exemplo de fluxo no dashboard:
+
+\begin{lstlisting}[language=Java,caption={Chamada tipada ao dashboard (TypeScript)},label={lst:dashboard-fetch}]
+const data = await fetchDashboard(token);
+setDashboard(data);
+\end{lstlisting}
+
+\section{Autenticação no cliente}
+
+\texttt{AuthContext} provê \texttt{token}, \texttt{user}, \texttt{signIn}, \texttt{signOut} e \texttt{removeAccount}. Token persistido com \texttt{expo-secure-store} \cite{expo_secure_store}, atendendo recomendações OWASP para dados sensíveis em mobile \cite{owasp_mobile}.
+
+Login Google envia ID token ao endpoint \texttt{/api/auth/google} \cite{google_oauth}.
+
+\section{UI/UX e paleta de cores (padrão 2.0)}
+
+Tokens definidos em \texttt{theme/colors.ts} e replicados no \texttt{tailwind.config.js} \cite{tailwind_docs}:
+
+\begin{itemize}
+    \item Primária: \texttt{\#2563EB} (ações principais).
+    \item Fundo claro: \texttt{\#F8FAFC}; superfície: \texttt{\#FFFFFF}.
+    \item Texto primário: \texttt{\#0F172A}; secundário: \texttt{\#64748B}.
+    \item Feedback: success \texttt{\#22C55E}, warning \texttt{\#F59E0B}, error \texttt{\#EF4444}.
+\end{itemize}
+
+NativeWind aplica classes utilitárias (\texttt{className="bg-background-light"}) mantendo consistência visual \cite{nativewind_docs}.
+
+\section{Componente FlipCard}
+
+Requisito de UX: animação de virada ao toque (não hover), inspirada em flip cards CSS \cite{w3schools_flip}. Implementação com \texttt{Animated.spring} e rotação Y \cite{reanimated_docs}:
+
+\begin{itemize}
+    \item Estado \texttt{flipped} controlado pela tela de estudo.
+    \item Frente exibe pergunta; verso exibe resposta.
+    \item \texttt{backfaceVisibility: 'hidden'} evita artefatos visuais.
+\end{itemize}
+
+\section{Feedback ao usuário}
+
+\subsection{Toasts}
+
+\texttt{react-native-toast-message} exibe mensagens de sucesso e erro com moderação --- requisito de equilíbrio do professor \cite{toast_message_rn}. Helpers \texttt{showSuccess} e \texttt{showError} centralizam textos.
+
+\subsection{Modais de confirmação}
+
+Exclusões de conta, assuntos e cartas passam por \texttt{ConfirmModal}, reduzindo ações acidentais \cite{mobile_first_nielsen}.
+
+\section{Tela de estudo}
+
+\texttt{StudySessionScreen} orquestra:
+\begin{enumerate}
+    \item Carregamento de cartas vencidas (\texttt{dueOnly: true}).
+    \item Exibição sequencial com \texttt{FlipCard}.
+    \item Botões ``Errei'', ``Acertei'' e ``Pular'' mapeados a \texttt{AnswerCardRequest}.
+    \item Toast e avanço automático para próxima carta.
+\end{enumerate}
+
+\section{Dashboard e calendário}
+
+\texttt{DashboardScreen} exibe cards com \texttt{totalSubjects}, \texttt{totalCards}, \texttt{dueCards} e \texttt{answeredToday}. O calendário mensal com destaque de dias estudados está em implementação parcial (RF13); o design referencia aplicativos como Clue \cite{clue_app}.
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\parbox{0.85\textwidth}{\centering
+    \vspace{2cm}
+    \textbf{[Figura 3 -- Print do Dashboard Cardly]}\\
+    \vspace{2cm}
+    }}
+    \caption{Dashboard com indicadores de progresso (inserir captura de tela real)}
+    \label{fig:dashboard-print}
+\end{figure}
+
+\section{Tela administrativa}
+
+\texttt{AdminScreen} é renderizada condicionalmente quando \texttt{user.role === 'SUPERADMIN'}, atendendo requisito de front-end exclusivo para superadmin. Consome \texttt{adminApi} para buscas paginadas e formulários de criação/edição.
+
+\section{Responsividade}
+
+Layouts utilizam \texttt{flex-1}, padding consistente e tipografia escalável. Testes em emulador Android e dispositivo físico via Expo Go \cite{expo_docs,youtube_expo_typescript}.
+
+\section{Hooks e estado}
+
+Telas usam \texttt{useState}, \texttt{useEffect} e \texttt{useCallback} seguindo regras oficiais de Hooks \cite{react_hooks_docs}. Evita-se prop drilling excessivo delegando autenticação ao contexto global.
+
+\section{Pendências de front-end}
+
+\begin{itemize}
+    \item Calendário visual completo no dashboard.
+    \item Módulo de amizades (telas e integração API).
+    \item Modo escuro completo com tokens \texttt{background.dark} (estrutura preparada na paleta).
+\end{itemize}

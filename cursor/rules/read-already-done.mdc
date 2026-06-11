@@ -1,0 +1,29 @@
+---
+alwaysApply: true
+---
+
+# Project context first
+
+The folder **`docs/agents/` is not in Git** — nothing under it is pushed to GitHub. On your machine you should have **local copies** of at least:
+
+- `docs/agents/already-done.md` — what is already done, how to run, what is missing (pt-BR).
+- `docs/agents/todo.md` — planned backend steps (local; not in Git).
+- `docs/agents/requisitos-academicos.md` — academic course constraints (profiles, Superadmin UI, ABNT report, tests, etc.).
+- Optional: `docs/agents/unileste-manual-abnt.pdf` — institutional ABNT manual (PDF, not versioned).
+
+Before planning work, editing code, or describing what exists in this repository, **read** `docs/agents/already-done.md`. **Second**, read `docs/agents/requisitos-academicos.md` for **academic course constraints**: non-trivial business rules (not CRUD-only), justification for the **mobile** client, **multiple user profiles**, a **Superadmin** with a **dedicated protected front-end**, a full **ABNT-style technical report**, and **screenshots** from **real test scenarios**. Treat the project as **academic**; **production deployment** is not an explicit requirement unless the brief changes.
+
+**Never** suggest committing or tracking `docs/agents/` or any PDF there.
+
+Follow that scope when deciding what to build next.
+
+## Language and locale
+
+- The **project** (local documentation under `docs/agents/`, academic report material, and user-facing documentation where applicable) is in **pt-BR**.
+- **Source code** (identifiers, strings intended for developers, tests), **Git commit messages**, **Cursor rules**, and **instructions to agents** are in **en-US**.
+
+## Code and commits
+
+- **Do not add comments** in source code (TypeScript, JavaScript, Java, etc.). Prefer clear names and small functions.
+- **Java:** use **IntelliJ IDEA default indentation** for all Java classes. **Do not** leave **spaces or blank lines** after the closing `}` of a class (file ends immediately after the class’s final `}` with a newline only as the editor requires).
+- **Do not use emojis** in **git commit messages** or suggested merge/PR titles.

@@ -1,0 +1,40 @@
+\chapter{Introdução}
+
+\section{Contexto e motivação}
+
+O aprendizado autodidata exige ferramentas que combinem organização de conteúdo, repetição inteligente e acompanhamento de progresso. Aplicativos de flashcards, como o Anki \cite{anki_manual}, consolidaram-se como referência nesse cenário ao aplicar técnicas de repetição espaçada, nas quais o intervalo entre revisões depende do desempenho do estudante \cite{anki_sm2,medium_spaced_repetition}.
+
+O \textbf{Cardly} nasce nesse contexto como projeto acadêmico da disciplina de Sistemas Móveis, desenvolvido por estudantes do sétimo semestre de Engenharia de Software. Trata-se de um clone funcional inspirado no Anki, com foco em estudo mobile, dashboard de progresso, comunidade de assuntos públicos e painel administrativo. O sistema foi concebido para demonstrar integração completa entre front-end móvel (React Native com Expo e TypeScript) e back-end REST (Spring Boot com Java), conforme exigido pelo professor \cite{react_native_docs,expo_docs,spring_boot_docs}.
+
+A proposta inicial foi apresentada ao docente por meio do documento \textit{Flashcards.pdf}, que orientou escopo, telas principais e regras de negócio. Este relatório expande essa proposta em documentação técnica formal, alinhada às normas ABNT \cite{abnt_nbr14724,abnt_nbr6023} e ao manual institucional UNILESTE utilizado pela equipe.
+
+\section{Problema}
+
+Estudantes universitários frequentemente acumulam material de diversas disciplinas sem um fluxo estruturado de revisão. Planilhas e anotações estáticas não registram dificuldade por carta, não impedem revisões prematuras e não oferecem visão temporal do hábito de estudo. Além disso, compartilhar baralhos entre colegas exige duplicação manual de conteúdo.
+
+O problema abordado consiste em disponibilizar um aplicativo móvel que:
+\begin{itemize}
+    \item permita criar assuntos e cartas personalizadas;
+    \item aplique revisão espaçada com intervalos definidos pelo sistema;
+    \item exiba progresso e histórico de estudo em dashboard;
+    \item ofereça assuntos públicos clonáveis pela comunidade;
+    \item disponibilize gestão centralizada por perfil administrador.
+\end{itemize}
+
+\section{Solução proposta}
+
+O Cardly resolve o problema por meio de uma arquitetura cliente-servidor \cite{tanenbaum2015,rest_fielding}: o aplicativo mobile consome uma API stateless protegida por JWT, persistindo dados em PostgreSQL \cite{postgresql_docs}. A lógica de dificuldade e agendamento de cartas permanece no back-end, garantindo consistência independentemente do cliente \cite{clean_architecture_martin}.
+
+O front-end utiliza React Navigation para fluxos autenticados e não autenticados \cite{react_navigation}, NativeWind para estilização \cite{nativewind_docs,tailwind_docs} e animação de virada de carta acionada por toque, inspirada em referências de flip card \cite{w3schools_flip,reanimated_docs}. O back-end organiza-se em camadas Controller, Service, Repository e Specification \cite{spring_boot_docs,jpa_specification}, com migrations versionadas via Flyway \cite{flyway_docs}.
+
+\section{Escopo acadêmico e produção}
+
+Embora o projeto tenha caráter acadêmico e prazo limitado de operação em produção, o professor exige preparação para deploy real \cite{twelve_factor,vercel_docs,railway_docs}. A equipe adota variáveis de ambiente, build reprodutível e separação entre configuração de desenvolvimento e produção. Repositórios públicos concentram o código-fonte \cite{cardly_backend_repo,cardly_frontend_repo}.
+
+\section{Organização deste relatório}
+
+Este documento está estruturado da seguinte forma: o Capítulo~\ref{cap:objetivos} apresenta objetivos e mapeamento explícito aos critérios de avaliação; o Capítulo~\ref{cap:requisitos} detalha requisitos funcionais e técnicos; o Capítulo~\ref{cap:arquitetura} descreve a arquitetura integrada; os Capítulos~\ref{cap:backend} e~\ref{cap:frontend} aprofundam implementação; segurança, testes e deploy são tratados nos Capítulos~\ref{cap:seguranca},~\ref{cap:testes} e~\ref{cap:deploy}; por fim, o Capítulo~\ref{cap:conclusao} consolida resultados e trabalhos futuros.
+
+\section{Justificativa do ecossistema mobile}
+
+Diferentemente de uma aplicação web genérica, o Cardly explora estudo fragmentado no cotidiano do estudante: sessões curtas, feedback tátil imediato na virada de cartas e notificações futuras de revisão \cite{mobile_first_nielsen}. A experiência foi pensada para telas de smartphone, com gestos e componentes nativos via Expo \cite{expo_docs,youtube_expo_typescript}, justificando o uso do stack mobile exigido pela disciplina.

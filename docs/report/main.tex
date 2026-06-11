@@ -1,0 +1,78 @@
+\documentclass[
+    12pt,
+    a4paper,
+    sumario=tradicional,
+    chapter=TITLE
+]{abntex2}
+
+\usepackage[alf]{abntex2cite}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{microtype}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    breaklines=true,
+    frame=single,
+    tabsize=2
+}
+
+\renewcommand{\ABNTEXchapterfont}{\fontfamily{ptm}\selectfont\bfseries}
+\renewcommand{\ABNTEXsectionfont}{\fontfamily{ptm}\selectfont\bfseries}
+\renewcommand{\ABNTEXsubsectionfont}{\fontfamily{ptm}\selectfont\bfseries}
+
+\titulo{Cardly: aplicativo móvel de flashcards com revisão espaçada e integração cliente-servidor}
+\autor{Hugo de Freitas Evangelista \and Paulo Henrique Calisto dos Santos \and Hudson Junior Rodrigues Silva \and Ivan Aloizio de Lana Filho}
+\local{Governador Valadares -- MG}
+\data{2026}
+\instituicao{Centro Universitário do Leste de Minas Gerais -- UNILESTE}
+\tipotrabalho{Trabalho de Conclusão de Disciplina (Projeto Final)}
+\orientador{Prof. [Nome do orientador]}
+\preambulo{Relatório técnico do projeto Cardly, desenvolvido na disciplina de Sistemas Móveis, apresentando arquitetura, requisitos, implementação e validação de um aplicativo de estudo com flashcards integrado a API REST em Spring Boot.}
+
+\begin{document}
+
+\frenchspacing
+\imprimircapa
+\imprimirfolhaderosto
+
+\begin{resumo}
+O Cardly é um aplicativo móvel multiplataforma inspirado no Anki, voltado ao estudo de diferentes assuntos por meio de flashcards e revisão espaçada. O front-end foi construído com React Native, Expo e TypeScript; o back-end, com Spring Boot e PostgreSQL. Este relatório documenta requisitos funcionais e técnicos, arquitetura cliente-servidor, camadas de segurança com JWT e Google SSO, estratégias de teste e preparação para deploy em produção. O texto está alinhado aos critérios de avaliação da disciplina e às normas ABNT para trabalhos acadêmicos.
+
+\textbf{Palavras-chave}: flashcards; revisão espaçada; React Native; Spring Boot; arquitetura cliente-servidor; JWT.
+\end{resumo}
+
+\tableofcontents
+\cleardoublepage
+
+\input{sections/introducao}
+\input{sections/objetivos}
+\input{sections/requisitos}
+\input{sections/arquitetura}
+\input{sections/backend}
+\input{sections/frontend}
+\input{sections/seguranca}
+\input{sections/testes}
+\input{sections/deploy}
+\input{sections/conclusao}
+
+\cleardoublepage
+\bibliography{references}
+
+\end{document}

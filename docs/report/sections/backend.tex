@@ -1,0 +1,131 @@
+\chapter{Implementação do Back-End}
+\label{cap:backend}
+
+\section{Stack tecnológica}
+
+O back-end utiliza Java 17+, Spring Boot 3, Spring Data JPA, Spring Security, PostgreSQL e Flyway \cite{spring_boot_docs,postgresql_docs,flyway_docs}. O código-fonte está no repositório \texttt{cardly-backend} \cite{cardly_backend_repo}.
+
+\section{Organização de pacotes (padrão 1.0 e 1.1)}
+
+A estrutura segue o padrão exigido pelo professor:
+
+\begin{verbatim}
+com.cardly
+├── config/          (SecurityConfig, JwtProperties)
+├── domain/          (User, Deck, Card, ENUMs)
+├── repository/      (UserRepository, DeckRepository, CardRepository)
+├── service/         (AuthService, UserService, DeckService, CardService)
+├── specification/   (UserSpecification, DeckSpecification, CardSpecification)
+├── security/        (JwtAuthenticationFilter, UserPrincipal)
+├── util/            (EmailNormalizer)
+└── web/             (Controllers)
+    └── dto/         (Request/Response records)
+\end{verbatim}
+
+Convenção de nomes: \texttt{UserController}, \texttt{UserService}, \texttt{UserRepository}, \texttt{UserSpecification}, \texttt{UserRoleENUM}, \texttt{RegisterRequest}, \texttt{UserResponse} \cite{youtube_spring_boot_api}.
+
+\section{Camada de domínio}
+
+\subsection{Entidade Card}
+
+A entidade \texttt{Card} centraliza a lógica de revisão espaçada. Campos relevantes:
+\begin{itemize}
+    \item \texttt{difficultyLevel}: enum \texttt{NONE}, \texttt{EASY}, \texttt{MEDIUM}, \texttt{HARD}.
+    \item \texttt{scheduledInterval}: enum \texttt{DAYS\_1} a \texttt{DAYS\_9}.
+    \item \texttt{dueAt}: instante UTC da próxima revisão permitida.
+    \item \texttt{rightStreak} e \texttt{wrongStreak}: contadores consecutivos.
+\end{itemize}
+
+\subsection{Soft delete}
+
+Entidades estendem \texttt{BaseEntity} com \texttt{createdAt}, \texttt{updatedAt} e \texttt{deletedAt}. Specifications filtram \texttt{deletedAt IS NULL}, preservando integridade referencial e auditoria.
+
+\section{Camada de serviço}
+
+\subsection{CardService -- trecho crucial}
+
+O método \texttt{answerCard} concentra as regras de negócio exigidas pelo docente. Ao receber \texttt{correct} ou \texttt{skipped}, o serviço:
+\begin{enumerate}
+    \item Valida propriedade do deck e existência da carta.
+    \item Impede resposta antes de \texttt{dueAt} quando agendada.
+    \item Aplica transições de dificuldade conforme especificação interna.
+    \item Persiste novo \texttt{dueAt} via \texttt{Instant.now().plus(days, ChronoUnit.DAYS)}.
+\end{enumerate}
+
+\begin{lstlisting}[language=Java,caption={Trecho simplificado de agendamento em CardService},label={lst:card-schedule}]
+private void applySchedule(Card card, DifficultyLevelENUM difficulty,
+        ScheduledIntervalENUM interval) {
+    card.setDifficultyLevel(difficulty);
+    card.setScheduledInterval(interval);
+    card.setDueAt(Instant.now().plus(intervalDays(interval), ChronoUnit.DAYS));
+}
+\end{lstlisting}
+
+Referências teóricas: algoritmo SM-2 e adaptações práticas \cite{anki_sm2,medium_spaced_repetition}.
+
+\subsection{DeckService e CommunityController}
+
+Decks possuem flag \texttt{publicVisible}. Assuntos públicos aparecem em \texttt{/api/community/decks}; clonagem duplica deck e cartas para coleção do usuário, isolando alterações futuras do autor original.
+
+\subsection{DashboardController}
+
+Agrega métricas: total de assuntos, total de cartas, cartas vencidas (\texttt{dueCards}) e respostas no dia (\texttt{answeredToday}). Base para calendário e indicadores do app \cite{clue_app}.
+
+\section{Camada web e DTOs}
+
+Controllers expõem REST sem lógica de negócio. DTOs são \textit{records} Java imutáveis \cite{java_records_spring}:
+
+\begin{itemize}
+    \item \texttt{CardSearchRequest}: filtros \texttt{question}, \texttt{difficultyLevel}, \texttt{dueOnly}, paginação.
+    \item \texttt{PagedResponse<T>}: \texttt{content}, \texttt{page}, \texttt{size}, \texttt{totalElements}, \texttt{totalPages}.
+    \item \texttt{AnswerCardRequest}: \texttt{Boolean correct}, \texttt{Boolean skipped}.
+\end{itemize}
+
+Respostas de erro padronizadas em \texttt{ApiExceptionHandler}.
+
+\section{Specification e endpoints /search}
+
+Em substituição a \texttt{getAll}, cada recurso expõe \texttt{POST .../search} \cite{jpa_specification}:
+
+\begin{lstlisting}[language=Java,caption={Composição de Specification para cartas},label={lst:spec}]
+Specification<Card> spec = Specification.where(CardSpecification.active())
+    .and(CardSpecification.byOwner(userId))
+    .and(CardSpecification.byDeck(deckId))
+    .and(CardSpecification.questionContains(request.question()))
+    .and(CardSpecification.difficultyEquals(request.difficultyLevel()))
+    .and(CardSpecification.dueNow(request.dueOnly()));
+\end{lstlisting}
+
+Payload vazio retorna conjunto paginado completo (filtrado por usuário autenticado), conforme requisito técnico RT05.
+
+\section{Persistência e migrations}
+
+Flyway scripts em \texttt{db/migration} criam tabelas \texttt{users}, \texttt{decks}, \texttt{cards} e índices por \texttt{user\_id} e \texttt{due\_at} \cite{flyway_docs}. Hibernate opera com \texttt{ddl-auto=validate} em produção.
+
+\section{Autenticação no backend}
+
+\texttt{AuthService} registra usuários com senha BCrypt, autentica login e valida ID token Google \cite{bcrypt_spring,google_oauth}. \texttt{JwtService} emite tokens HS256 com expiração configurável (\texttt{cardly.jwt.expiration-seconds}) \cite{jwt_io}.
+
+\texttt{JwtAuthenticationFilter} intercepta requisições, valida assinatura e popula \texttt{SecurityContext} \cite{spring_security_jwt,stackoverflow_jwt_spring}.
+
+\section{Administração}
+
+\texttt{AdminController} restringe operações a \texttt{ROLE\_SUPERADMIN}. Endpoints espelham CRUD de usuários, decks e cartas com DTOs administrativos (\texttt{AdminCreateUserRequest}, \texttt{AdminCardSearchRequest}).
+
+\section{Boas práticas adotadas}
+
+\begin{itemize}
+    \item \texttt{open-in-view=false} evita consultas lazy fora de transação.
+    \item Serviços anotados com \texttt{@Transactional} delimitam consistência.
+    \item Normalização de e-mail em \texttt{EmailNormalizer} reduz duplicatas.
+    \item Paginação obrigatória evita respostas volumosas em mobile \cite{pressman2020}.
+\end{itemize}
+
+\section{Evidência para arguição}
+
+Perguntas esperadas na banca e onde respondê-las:
+\begin{itemize}
+    \item \textit{Por que a dificuldade fica no backend?} --- Consistência e impossibilidade de fraude no agendamento.
+    \item \textit{Por que Specification?} --- Requisito acadêmico e flexibilidade de filtros sem explosion de métodos.
+    \item \textit{Como garantir paginação?} --- \texttt{Pageable} Spring Data em todos os \texttt{/search}.
+\end{itemize}

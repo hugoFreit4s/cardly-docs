@@ -1,0 +1,105 @@
+\chapter{Objetivos}
+\label{cap:objetivos}
+
+\section{Objetivo geral}
+
+Desenvolver e documentar o Cardly, aplicativo móvel de flashcards com revisão espaçada, demonstrando integração completa entre React Native (Expo/TypeScript) e Spring Boot (Java), incluindo autenticação, CRUD, comunicação REST, organização em camadas, experiência de usuário responsiva e preparação para ambiente de produção.
+
+\section{Objetivos específicos}
+
+\begin{enumerate}
+    \item Implementar fluxos de autenticação com credenciais locais e Google SSO, utilizando JWT stateless \cite{jwt_io,google_oauth,spring_security_jwt}.
+    \item Modelar assuntos (\textit{decks}), cartas e respostas com regras de dificuldade e intervalos entre tentativas definidos pelo sistema.
+    \item Disponibilizar dashboard com indicadores de progresso e calendário de dias com atividade de estudo, inspirado em aplicativos de acompanhamento diário \cite{clue_app}.
+    \item Expor API REST paginada com endpoints \texttt{/search} baseados em Specification, sem \texttt{getAll} genérico \cite{jpa_specification}.
+    \item Construir front-end com NativeWind, modais de confirmação e toasts equilibrados \cite{nativewind_docs,toast_message_rn}.
+    \item Oferecer painel exclusivo de superadministrador para gestão de usuários, assuntos e cartas.
+    \item Validar o sistema com testes automatizados e evidências visuais para arguição técnica \cite{junit5_spring,jest_testing_library}.
+    \item Preparar pipeline de deploy (Railway/Vercel ou equivalente) para demonstração funcional \cite{railway_docs,vercel_docs,expo_eas_build}.
+\end{enumerate}
+
+\section{Mapeamento aos critérios de avaliação do professor}
+
+A Tabela~\ref{tab:criterios-avaliacao} relaciona explicitamente os critérios divulgados na plataforma da disciplina (conforme \texttt{todo.md} do projeto) às seções deste relatório e às evidências implementadas no Cardly. Esse mapeamento orienta a apresentação prática e a arguição técnica.
+
+\begin{table}[htbp]
+    \caption{Mapeamento entre critérios de avaliação, seções do relatório e evidências no Cardly}
+    \label{tab:criterios-avaliacao}
+    \centering
+    \small
+    \begin{tabular}{p{4.2cm} p{3.8cm} p{6.5cm}}
+        \toprule
+        \textbf{Critério (disciplina)} & \textbf{Seção do relatório} & \textbf{Evidência no projeto} \\
+        \midrule
+        Integração Front-End (RN/Expo/TS) e Back-End (Spring Boot) &
+        Cap.~\ref{cap:arquitetura}, \ref{cap:backend}, \ref{cap:frontend} &
+        Módulos \texttt{*Api.ts} no app; controllers REST no backend; JSON paginado \\
+        \addlinespace
+        Arquitetura cliente-servidor &
+        Cap.~\ref{cap:arquitetura} &
+        Diagramas de camadas; API stateless; PostgreSQL centralizado \\
+        \addlinespace
+        Autenticação, CRUD e comunicação com API &
+        Cap.~\ref{cap:seguranca}, \ref{cap:backend}, \ref{cap:frontend} &
+        JWT + Google SSO; endpoints protegidos; CRUD de decks/cartas/usuários \\
+        \addlinespace
+        Organização de código e separação de responsabilidades &
+        Cap.~\ref{cap:backend}, \ref{cap:frontend} &
+        Padrão 1.0/1.1 no backend; screens, components, api e auth no front \\
+        \addlinespace
+        UI/UX, responsividade e experiência &
+        Cap.~\ref{cap:frontend} &
+        FlipCard animado; paleta 2.0; toasts e modais; dashboard \\
+        \addlinespace
+        Preparo para produção &
+        Cap.~\ref{cap:deploy} &
+        Variáveis de ambiente; build EAS; deploy Railway; CORS \\
+        \addlinespace
+        Funcionamento completo da aplicação &
+        Cap.~\ref{cap:testes}, \ref{cap:conclusao} &
+        Testes de serviço; roteiro de demonstração; prints \\
+        \addlinespace
+        Segurança adequada &
+        Cap.~\ref{cap:seguranca} &
+        BCrypt, JWT, roles, SecureStore, OWASP mobile \\
+        \addlinespace
+        Clareza na apresentação e domínio técnico &
+        Cap.~\ref{cap:objetivos}, \ref{cap:conclusao} &
+        Mapeamento de critérios; glossário implícito; decisões justificadas \\
+        \addlinespace
+        Estabilidade geral &
+        Cap.~\ref{cap:testes} &
+        Testes unitários backend; tratamento de erros; validações \\
+        \bottomrule
+    \end{tabular}
+    \\[0.5em]
+    \footnotesize Fonte: elaborado pelos autores com base no enunciado da disciplina e em \texttt{todo.md}.
+\end{table}
+
+\section{Mapeamento à metodologia e atividades da apresentação}
+
+A Tabela~\ref{tab:atividades-apresentacao} indica como cada atividade exigida na metodologia será conduzida na banca.
+
+\begin{table}[htbp]
+    \caption{Atividades de apresentação e correspondência no Cardly}
+    \label{tab:atividades-apresentacao}
+    \centering
+    \small
+    \begin{tabular}{p{5.5cm} p{8.5cm}}
+        \toprule
+        \textbf{Atividade (professor)} & \textbf{Como será demonstrada} \\
+        \midrule
+        Proposta (problema e solução) & Slides iniciais + Cap.~1 deste relatório \\
+        Fluxo completo (login, navegação, CRUD, API) & Demo no emulador/dispositivo: Login $\rightarrow$ Decks $\rightarrow$ Estudo $\rightarrow$ Dashboard \\
+        API em funcionamento & Postman ou log ao vivo; endpoints \texttt{/api/auth}, \texttt{/api/decks}, \texttt{/api/cards} \\
+        Arquitetura (Controller/Service/Repository/Hooks/Services) & Diagramas Cap.~\ref{cap:arquitetura}; navegação de pastas nos repositórios \\
+        UI/UX e layout & FlipCard, paleta de cores, calendário no dashboard \\
+        Build ou preparação para deploy & \texttt{eas build} ou APK pré-gerado; URL Railway ativa \\
+        Questionamentos técnicos & Equipe dividida por domínio (ver roteiro de apresentação em material complementar) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Delimitações}
+
+Não fazem parte do escopo mínimo desta entrega final de documentação: implementação completa do módulo de amizades (solicitações entre usuários), embora conste nos requisitos funcionais planejados; geração automática de slides \texttt{pptx}; e revisão por três agentes revisores exigida internamente pela equipe. Esses itens constam como pendências na conclusão deste relatório.

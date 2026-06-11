@@ -1,0 +1,154 @@
+# Cardly - already done
+
+## Backend
+- JWT authentication flow already working with register, login, logout and `/api/me`.
+- Google login endpoint added at `/api/auth/google` with token validation.
+- Subject model kept as Deck and expanded with visibility (`isPublic`).
+- CRUD foundation completed for subjects and cards with soft delete support.
+- Study flow implemented with `answer` and `skip` endpoints:
+  - `/api/decks/{deckId}/cards/{cardId}/answer`
+  - `/api/decks/{deckId}/cards/{cardId}/skip`
+- Difficulty/interval scheduling applied server-side and next due date is calculated.
+- Pagination/search contract implemented with `/search` endpoints and Specification filters.
+- Community subject flow implemented:
+  - search public subjects
+  - clone subject to personal collection
+- Dashboard endpoint implemented with counters for subjects, cards, due cards and answered today.
+- Admin area implemented under `/api/admin/**` with SUPERADMIN role protection for managing users, subjects and cards.
+- Friend request backend implemented:
+  - send
+  - list received pending
+  - list sent pending
+  - accept
+  - deny
+  - unsend
+- Study review events tracking implemented to support calendar history.
+- Database migrations added:
+  - `V3__add_deck_visibility.sql`
+  - `V4__friend_requests_and_review_events.sql`
+  - `V5__seed_admin_user.sql` (seeds `adm@cardly.com` / `admin123`, role `SUPERADMIN`, idempotent via `NOT EXISTS`)
+  - `V6__seed_community_content.sql` (seeds 6 public admin-owned disciplinas with 5 cards each: Matemática, Geografia, Português, Inglês, Ciências, História)
+- Profile self-service endpoints on `/api/me`:
+  - `GET /api/me` now returns the user `name`
+  - `PATCH /api/me` updates name and/or password (password change verifies `currentPassword`, requires 8+ chars)
+- `DeckResponse` now exposes `ownerName` so the community feed can credit the author.
+- Backend tests are passing with Maven wrapper.
+- CORS configured for web frontend access (`CorsConfig` + env `CARDLY_CORS_ALLOWED_ORIGINS`, default `http://localhost:3000` and `http://127.0.0.1:3000`).
+
+## Frontend
+- API layer updated to consume backend paginated `/search` contracts.
+- Dashboard screen shows progress metrics only; navigation moved to the sidebar menu (v2).
+- Study session screen implemented with card flip animation and actions:
+  - answer correct
+  - answer wrong
+  - skip
+- Subject list screen improved with:
+  - public/private toggle on create
+  - delete confirmation modal
+  - quick start study action
+- Deck detail screen improved with card edit/delete and confirmation modal.
+- Community screen implemented with clone subject flow.
+- Admin panel implemented for users, subjects and cards (create/update/delete).
+- Friend requests screen implemented (send/accept/deny/unsend).
+- Study calendar screen implemented with highlighted reviewed days.
+- Delete account flow wired in app.
+- Toast notifications and confirmation modal components added.
+- NativeWind setup added and auth screens migrated to `className` style.
+- Required color palette aligned in theme.
+- Google SSO login flow added (Expo Auth Session + backend `/api/auth/google` integration), with button hidden when client IDs are not configured.
+- Subject update flow added in user area (`DecksScreen`) with create/edit/delete lifecycle.
+- Auth token persistence uses `@react-native-async-storage/async-storage` (web + native compatible; replaces `expo-secure-store` on web).
+- API client maps common auth errors to PT-BR messages (e.g. duplicate email, invalid credentials).
+- Light/dark theme system added:
+  - `ThemeProvider` + `useTheme`/`useThemeColors` wrapping NativeWind `colorScheme`, persisted in AsyncStorage
+  - `tailwind.config.js` uses `darkMode: 'class'`; light/dark palettes in `src/theme/colors.ts`
+  - `ThemeToggleButton` uses Feather moon/sun icons; theme toggle available on Dashboard header only
+  - `dark:` variants applied to all `className` screens/components; `DecksScreen`/`DeckDetailScreen`/`HomeScreen` rebuilt with theme-aware `StyleSheet`
+- Dashboard shell (v2): `DashboardShell` + `AppDrawer` with hamburger Menu/X toggle, full-screen `Modal` overlay, swipe-to-close, and bordered nav items; drawer/header use `StyleSheet` + safe-area insets (fixes web layout where the menu appeared at the bottom and the top bar had no padding).
+- Sidebar slide animation uses `withTiming` + cubic ease-out (no spring bounce on open/close or swipe).
+- Dashboard header actions (v2): profile (`user`), theme (moon/sun), and exit (`log-out`) Feather icons on Dashboard only; removed global header icons and homepage nav/profile/logout buttons.
+- Clone toast link (v2): `showSuccessAction` after cloning a community disciplina — toast shows "Abrir disciplina" and navigates to the cloned `DeckDetail`.
+- `@expo/vector-icons` added for Feather icons (theme, profile, exit, menu).
+- Card legibility improved: stronger borders/shadows, primary-accented labels, and a tinted answer panel (no more white-on-white answers).
+- Reusable `PasswordInput` with a "Mostrar/Ocultar" toggle on Login, Register and Profile password fields.
+- User-facing wording changed from "assuntos/assunto" to "disciplinas/disciplina" across all screens and navigation titles (backend `subject` field unchanged).
+- Profile screen added (avatar with initials, name/email/role, edit name, change password, sign out, delete account); reached from the Dashboard header profile icon (v2).
+- Community feed shows the author ("por Administrador") via `ownerName`.
+- Frontend TypeScript check is passing.
+
+## v3 — Public user IDs and admin panel (fixes/v3.md)
+- **Public user ID (`publicId`)**: migration `V7__add_user_public_id.sql` adds unique 6-digit IDs; backfill for existing users; `users_public_id_seq` for new registrations via `PublicIdService`.
+- IDs assigned on register, Google login, admin user creation, and reactivated accounts.
+- `MeResponse` exposes `publicId` only (internal PK hidden from profile API); `UserResponse` includes both for admin operations.
+- Friend requests use `receiverPublicId` (lookup by public ID, not PK); `FriendRequestResponse` returns `requesterPublicId` / `receiverPublicId`.
+- **Profile**: `#publicId` shown below name (muted, bold, italic) with Feather copy icon (`expo-clipboard`); toast "ID copiado".
+- **Friends**: input accepts `#124123` format; validates 6-digit public ID before send.
+- **Admin panel**:
+  - Current admin excluded from user lists (backend `excludeId` on search + principal filter).
+  - Two tabs: Usuários (list/delete) and Disciplinas (drill-down: usuário → disciplinas → cartões).
+  - Removed flat Cartões tab and manual `ownerId`/`deckId` inputs; context from selected user/deck.
+  - User rows show `#publicId`; breadcrumb and back navigation in drill-down.
+- Backend tests updated; `FriendRequestServiceTest` added for public ID lookup and self-request rejection.
+
+## v4 — Study UI, Revisões tab, deck cards (fixes/v4.md)
+- **FlipCard**: 4px border radius; inner content uses `StyleSheet` padding (24px) so spacing is reliable on web; difficulty badge always visible on front and back (defaults to **Novo** for `NONE`/new cards; Fácil/Médio/Difícil after first answer per backend scheduling).
+- **Minhas Disciplinas**: card layout shows Nome, Descrição (`subject`), card count, privacy badge, Estudar/Editar/Excluir; **Ver revisões** link when `scheduledCardCount > 0`; 4px card radius; no whole-card navigation to detail.
+- **Backend revision API**:
+  - Card search filters: `scheduledOnly`, `waitingOnly`, `readyScheduledOnly` (`CardSpecification` + `CardSearchRequest`)
+  - `DeckResponse` extended with `scheduledCardCount`, `waitingCardCount`, `readyRevisionCount`
+  - `GET /api/revisions` returns decks with scheduled cards (`RevisionController`, `RevisionService`)
+- **Revisões tab**: new `RevisionsScreen` in drawer; empty state **Sem revisões**; deck groups collapsible with chevron up/down (default collapsed on each visit; opens highlighted deck when linked from **Ver revisões**); difficulty badges; clock + live countdown for waiting cards; auto-refresh when timer hits zero; **Revisar** opens study in revision mode.
+- **Study modes**: `StudySession` supports `mode: 'study' | 'revision'` (`dueOnly` vs `readyScheduledOnly`).
+- Utils: `difficulty.ts` (PT-BR labels), `formatCountdown.ts`.
+- `CardServiceTest` extended with wrong-answer and correct-streak scheduling cases.
+- **Difficulty logic assessment**: scheduling works server-side (wrong → HARD/1d, correct streak ladder, skip reschedules); `wrongStreak` not used in scheduling; `DAYS_3` unused; UI now surfaces difficulty and revision queue.
+
+## v5 — Study gate, revision hint, form draft (fixes/v5.md)
+- **Study session**: **Acertei** / **Errei** disabled until the user has seen the back at least once (may flip back to the front and still answer); **Pular** remains available on the front; hint "Vire o cartão para responder" until the back has been viewed once.
+- **Minhas Disciplinas**: always shows revision row — **Ver revisões** link when `scheduledCardCount > 0`, otherwise static **Sem revisões disponíveis**.
+- **Nova disciplina form**: create draft persisted on **Cancelar** and when reopening **+ Nova Disciplina**; **Limpar tudo** in form header (create mode only); edit mode unchanged except cancel no longer wipes create draft.
+
+## v6 — Study screen UX (fixes/v6.md)
+- **Pular button**: label uses `dark:text-text-dark`; outline border uses `dark:border-slate-600` for readability in dark mode.
+- **Flip hint**: "Vire o cartão para responder" stays mounted with `opacity: 0` after the back has been seen once so answer buttons do not shift layout.
+
+## v6 follow-up — Card advance after flip-back
+- **Study session**: when answering or skipping while the back is visible, the next card is shown only after the flip-back animation completes, preventing a brief glimpse of the next answer during the transition.
+
+## v7 — Login error + review flow (fixes/v7.md)
+- **Login errors**: API client reads Spring `ProblemDetail` `title` when `detail`/`message` are missing; `mapApiErrorMessage` maps 401 / `"Unauthorized"` → *E-mail ou senha inválidos.* and 403 → session-expired message (no more generic **Erro 401** on bad credentials).
+- **Minhas Disciplinas**: `useFocusEffect` reloads decks on focus so **Ver revisões** appears after study (`scheduledCardCount` no longer stale).
+- **Study session completion**: when the queue drains after a real session (`initialCount > 0`), shows **Sessão concluída** with **Ver revisões** (navigates to `Revisions` with `deckId`) and **Voltar**; initial empty queue keeps the existing message.
+- **Revisões tab**: reloads revision data on screen focus (silent refresh).
+- **Difficulty on first pass (documented, no scheduling change)**: first correct answer → **Difícil** / 2 days; wrong → **Difícil** / 1 day — so all cards show Difícil after one answer each; upgrades to Médio/Fácil only on later reviews of the same card (2nd/3rd+ correct).
+- **Tests**: `CardServiceTest` — `answerCardCorrectOnFirstPassSchedulesHardForTwoDays`, `firstStudyPassMarksAllCardsHardWhenFourCorrectAndOneWrong`.
+
+## Infrastructure
+- Project scoped to **local + Docker only** (no production deploy — Vercel/Railway/AWS removed from scope).
+- Docker support:
+  - `cardly-backend/Dockerfile`
+  - `cardly-rnative-app/Dockerfile`
+  - `cardly-rnative-app/nginx.conf`
+  - `.dockerignore` files for both repos
+- Root orchestration: `docker-compose.yml` with `postgres`, `backend`, `frontend`.
+- Local defaults aligned across stack:
+  - Postgres user/password `postgres` / `postgres` (backend `application.properties`, compose, `.env.example`)
+  - JWT secret fixed for local dev (`local-dev-jwt-secret-at-least-32-characters-long`)
+  - CORS allows Docker web (`:3000`), Expo dev server (`:8081`), and Expo Go (`:19006`)
+- Frontend dev API URL: `getBaseUrl` falls back to `localhost:8080` (web/iOS) or `10.0.2.2:8080` (Android emulator) when `EXPO_PUBLIC_API_BASE_URL` is unset.
+- Env templates: `cardly-rnative-app/.env.example`, `cardly-backend/.env.example`.
+- Root `README.md` documents full Docker stack and hybrid dev (Postgres in Docker + `./mvnw spring-boot:run` + `npm run web`).
+- Nginx serves Expo web export with no-cache headers for easier local iteration.
+- `docker compose up --build` → frontend `:3000`, backend `:8080`, Postgres `:5432`.
+
+## Version control
+- Backend and frontend work committed and pushed to `origin/Developer` on GitHub (`cardly-backend`, `cardly-rnative-app`).
+- Commits follow `[Feature]` / `[Chore]` prefix in PT-BR per project rules; authors and dates distributed across the team per `todo.md`.
+
+## Documentation delegation
+- Documentation drafting has been delegated to a `Composer 2.5 fast` subagent.
+- Initial documentation draft was generated in `docs/report` with:
+  - `main.tex`
+  - `references.bib`
+  - section files (`introducao`, `objetivos`, `requisitos`, `arquitetura`, `backend`, `frontend`, `seguranca`, `testes`, `deploy`, `conclusao`)
+- Pending: final technical review, ABNT fine-tuning and slide-level consistency check.

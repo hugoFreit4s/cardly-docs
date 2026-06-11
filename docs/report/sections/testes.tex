@@ -1,0 +1,146 @@
+\chapter{Testes e Validação}
+\label{cap:testes}
+
+\section{Estratégia de testes}
+
+A validação do Cardly combina testes automatizados no backend, testes manuais integrados mobile-API e evidências visuais exigidas pelo manual acadêmico UNILESTE \cite{junit5_spring,jest_testing_library,postman_docs}. A estratégia prioriza regras de negócio críticas (autenticação, agendamento de cartas, autorização admin).
+
+\section{Testes automatizados -- backend}
+
+Suite JUnit 5 + Spring Boot Test executada via Maven (\texttt{mvn test}) \cite{junit5_spring}. Classes principais:
+
+\begin{table}[htbp]
+    \caption{Testes unitários e de integração do backend}
+    \label{tab:testes-backend}
+    \centering
+    \small
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Classe} & \textbf{Escopo} \\
+        \midrule
+        AuthServiceTest & Registro, login, hash de senha \\
+        UserServiceTest & CRUD usuário, soft delete \\
+        DeckServiceTest & Assuntos, visibilidade pública \\
+        CardServiceTest & Respostas, intervalos, dueAt \\
+        EmailNormalizerTest & Normalização de e-mail \\
+        CardlyBackendApplicationTests & Context load Spring \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Ambiente de teste utiliza H2 ou PostgreSQL em container via \texttt{application-test.properties} \cite{docker_postgres}.
+
+\subsection{Exemplo: validação de agendamento}
+
+Testes em \texttt{CardServiceTest} verificam:
+\begin{itemize}
+    \item Carta nova correta $\rightarrow$ EASY, 5 dias.
+    \item Carta nova incorreta $\rightarrow$ MEDIUM, 3 dias.
+    \item Bloqueio de resposta antes de \texttt{dueAt}.
+    \item Skip reagenda conforme dificuldade atual.
+\end{itemize}
+
+\section{Testes manuais -- API}
+
+Postman (ou Insomnia) valida contratos REST \cite{postman_docs}:
+
+\begin{enumerate}
+    \item Registrar usuário e obter JWT.
+    \item Criar deck e cartas.
+    \item Responder carta e consultar novo \texttt{dueAt}.
+    \item Tentar acessar \texttt{/api/admin} com role USER (esperado 403).
+    \item Buscar decks com payload vazio em \texttt{/search} (paginação).
+\end{enumerate}
+
+pgAdmin inspeciona persistência no PostgreSQL \cite{pgadmin_docs}.
+
+\section{Testes manuais -- aplicativo mobile}
+
+Roteiro de validação integrada:
+
+\begin{longtable}{p{1cm} p{5cm} p{7.5cm}}
+    \caption{Roteiro de testes manuais mobile} \label{tab:testes-mobile} \\
+    \toprule
+    \textbf{ID} & \textbf{Cenário} & \textbf{Resultado esperado} \\
+    \midrule
+    \endfirsthead
+    T01 & Registro e login & Token salvo; navegação ao dashboard \\
+    T02 & Criar assunto privado & Lista atualizada; toast sucesso \\
+    T03 & Adicionar cartas & Cartas visíveis no deck \\
+    T04 & Sessão de estudo + flip & Animação; resposta registrada \\
+    T05 & Carta agendada futura & Indisponível até dueAt \\
+    T06 & Dashboard & Contadores coerentes com API \\
+    T07 & Comunidade + clone & Deck copiado na coleção \\
+    T08 & Admin (superadmin) & CRUD global funcional \\
+    T09 & Excluir conta & Modal confirma; logout automático \\
+    \bottomrule
+\end{longtable}
+
+\section{Evidências visuais (prints)}
+
+O relatório final deve incluir capturas de tela de diversos cenários reais, conforme requisito institucional. Placeholders abaixo indicam prints pendentes de inserção:
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\parbox{0.4\textwidth}{\centering\vspace{2.5cm}Login\vspace{2.5cm}}
+    \fbox{\parbox{0.4\textwidth}{\centering\vspace{2.5cm}Estudo + Flip\vspace{2.5cm}}
+    \caption{Evidências visuais -- login e sessão de estudo (inserir PNGs reais)}
+    \label{fig:prints-estudo}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\parbox{0.4\textwidth}{\centering\vspace{2.5cm}CRUD Decks\vspace{2.5cm}}
+    \fbox{\parbox{0.4\textwidth}{\centering\vspace{2.5cm}Admin Panel\vspace{2.5cm}}
+    \caption{Evidências visuais -- CRUD e administração}
+    \label{fig:prints-crud}
+\end{figure}
+
+Recomenda-se pasta \texttt{docs/report/figures/} com arquivos \texttt{login.png}, \texttt{study.png}, etc.
+
+\section{Testes de front-end (planejado)}
+
+React Native Testing Library \cite{jest_testing_library} pode cobrir:
+\begin{itemize}
+    \item Renderização de \texttt{FlipCard} nos estados frente/verso.
+    \item Exibição condicional de \texttt{AdminScreen}.
+    \item Helpers de toast.
+\end{itemize}
+
+Cobertura automatizada mobile permanece como melhoria futura; validação atual é predominantemente manual integrada.
+
+\section{CI/CD (opcional)}
+
+GitHub Actions pode executar \texttt{mvn test} a cada push \cite{github_actions}. Pipeline não bloqueia entrega acadêmica, mas reforça estabilidade citada nos critérios de avaliação.
+
+\section{Rastreabilidade requisito-teste}
+
+\begin{table}[htbp]
+    \caption{Rastreabilidade entre requisitos e testes}
+    \label{tab:rastreabilidade}
+    \centering
+    \footnotesize
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{RF/RT} & \textbf{Teste} & \textbf{Tipo} \\
+        \midrule
+        RF01--RF03 & AuthServiceTest, T01, T09 & Auto + manual \\
+        RF04--RF06 & DeckServiceTest, T02--T03 & Auto + manual \\
+        RF07--RF10 & CardServiceTest, T04--T05 & Auto + manual \\
+        RF09 & DashboardController, T06 & Auto + manual \\
+        RF15--RF16 & Admin endpoints, T08 & Manual \\
+        RT01 & AuthServiceTest, T01 & Auto + manual \\
+        RT05 & CardServiceTest search, Postman & Auto + manual \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Critérios de aceite para demonstração}
+
+Para a apresentação prática, considera-se aceito:
+\begin{itemize}
+    \item Login $\rightarrow$ estudo $\rightarrow$ dashboard sem erro fatal.
+    \item API respondendo em produção ou emulador apontando para Railway.
+    \item Pelo menos um teste automatizado de carta demonstrado na arguição.
+    \item Prints inseridos na versão final deste PDF.
+\end{itemize}

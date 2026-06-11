@@ -1,0 +1,166 @@
+\chapter{Arquitetura do Sistema}
+\label{cap:arquitetura}
+
+\section{Visão geral cliente-servidor}
+
+O Cardly adota arquitetura cliente-servidor em três camadas lógicas \cite{tanenbaum2015,sommerville2019}:
+\begin{enumerate}
+    \item \textbf{Apresentação}: aplicativo React Native executado via Expo no dispositivo do estudante \cite{react_native_docs,expo_docs}.
+    \item \textbf{Aplicação}: API REST Spring Boot expondo regras de negócio e autenticação \cite{spring_boot_docs,rest_fielding}.
+    \item \textbf{Dados}: banco relacional PostgreSQL com schema versionado por Flyway \cite{postgresql_docs,flyway_docs}.
+\end{enumerate}
+
+A comunicação ocorre exclusivamente por HTTP/JSON sobre TLS em produção. O cliente não acessa o banco diretamente, garantindo controle centralizado de validações e agendamento de cartas \cite{clean_architecture_martin}.
+
+\section{Diagrama de contexto}
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\parbox{0.92\textwidth}{\centering
+    \vspace{0.3cm}
+    \textbf{[Figura 1 -- Diagrama de contexto]}\\
+    \vspace{0.2cm}
+    Dispositivo mobile (Expo) $\leftrightarrow$ API Spring Boot $\leftrightarrow$ PostgreSQL\\
+    Integração opcional: Google OAuth 2.0\\
+    \vspace{0.3cm}
+    \textit{Inserir diagrama exportado do draw.io ou modelo institucional.}\\
+    \vspace{0.3cm}
+    }}
+    \caption{Contexto do Cardly em ambiente de produção}
+    \label{fig:contexto}
+    \\[0.3em]
+    \footnotesize Fonte: elaborado pelos autores.
+\end{figure}
+
+\section{Diagrama de camadas do back-end}
+
+O backend segue o padrão de pastas 1.0 exigido pelo projeto:
+
+\begin{itemize}
+    \item \texttt{web} (Controller + DTO Request/Response): entrada HTTP, validação superficial, mapeamento de status.
+    \item \texttt{service}: regras de negócio, transações, agendamento de cartas.
+    \item \texttt{repository}: persistência JPA.
+    \item \texttt{specification}: filtros dinâmicos para endpoints \texttt{/search}.
+    \item \texttt{domain}: entidades JPA (\texttt{User}, \texttt{Deck}, \texttt{Card}).
+    \item \texttt{config} e \texttt{security}: JWT, CORS, codificação de senha.
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\parbox{0.92\textwidth}{\centering
+    \vspace{0.3cm}
+    \textbf{[Figura 2 -- Camadas Spring Boot]}\\
+    Cliente HTTP $\rightarrow$ Controller $\rightarrow$ Service $\rightarrow$ Repository $\rightarrow$ BD\\
+    Specification acoplada ao Repository em consultas paginadas\\
+    \vspace{0.3cm}
+    }}
+    \caption{Fluxo em camadas do back-end Cardly}
+    \label{fig:camadas-backend}
+\end{figure}
+
+\section{Diagrama de camadas do front-end}
+
+O aplicativo mobile organiza responsabilidades assim \cite{react_hooks_docs}:
+
+\begin{itemize}
+    \item \texttt{screens}: telas de fluxo (Login, Decks, Estudo, Dashboard, Admin, Comunidade).
+    \item \texttt{components}: UI reutilizável (\texttt{FlipCard}, \texttt{ConfirmModal}).
+    \item \texttt{api}: funções de integração REST (\texttt{authApi}, \texttt{decksApi}, \texttt{dashboardApi}).
+    \item \texttt{auth}: \texttt{AuthContext} com hooks de sessão e armazenamento seguro \cite{expo_secure_store}.
+    \item \texttt{navigation}: pilhas autenticada e não autenticada \cite{react_navigation}.
+    \item \texttt{theme}: tokens da paleta 2.0 consumidos pelo NativeWind \cite{nativewind_docs}.
+\end{itemize}
+
+\section{Fluxo de integração React Native + Spring Boot}
+
+A integração completa --- critério central da disciplina --- segue o fluxo abaixo:
+
+\subsection{Autenticação}
+
+\begin{enumerate}
+    \item Usuário informa credenciais ou token Google na tela de login.
+    \item App envia \texttt{POST /api/auth/login} ou \texttt{POST /api/auth/google}.
+    \item Backend valida credenciais (BCrypt) ou ID token Google \cite{google_oauth,bcrypt_spring}.
+    \item Resposta inclui JWT assinado com claims de \texttt{userId} e \texttt{role} \cite{jwt_io}.
+    \item App persiste token no \texttt{SecureStore} e injeta header \texttt{Authorization: Bearer} \cite{expo_secure_store,mdn_fetch}.
+\end{enumerate}
+
+\subsection{Operações CRUD}
+
+\begin{enumerate}
+    \item Tela dispara função em \texttt{*Api.ts} com token do contexto.
+    \item Requisição atinge controller correspondente (\texttt{DeckController}, \texttt{CardController}).
+    \item Service aplica autorização (usuário dono do recurso) e persistência.
+    \item Resposta paginada (\texttt{PagedResponse}) ou DTO único retorna ao app.
+    \item UI atualiza estado local e exibe toast de sucesso ou erro \cite{toast_message_rn}.
+\end{enumerate}
+
+\subsection{Sessão de estudo}
+
+\begin{enumerate}
+    \item \texttt{StudySessionScreen} busca cartas elegíveis (\texttt{dueOnly=true}).
+    \item Usuário visualiza pergunta; toque aciona animação \texttt{FlipCard} \cite{w3schools_flip,reanimated_docs}.
+    \item Resposta enviada via \texttt{POST /api/decks/\{id\}/cards/\{id\}/answer}.
+    \item \texttt{CardService} recalcula dificuldade e \texttt{dueAt}; dashboard reflete \texttt{answeredToday}.
+\end{enumerate}
+
+\section{Contrato de API}
+
+Endpoints principais (prefixo \texttt{/api}):
+
+\begin{table}[htbp]
+    \caption{Endpoints REST principais do Cardly}
+    \label{tab:endpoints}
+    \centering
+    \small
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Método} & \textbf{Rota} & \textbf{Descrição} \\
+        \midrule
+        POST & /auth/register, /auth/login, /auth/google & Autenticação \\
+        GET & /me & Perfil autenticado \\
+        POST & /decks/search & Busca paginada de assuntos \\
+        POST & /decks/\{id\}/cards/search & Busca paginada de cartas \\
+        POST & /decks/\{id\}/cards/\{id\}/answer & Resposta e agendamento \\
+        GET & /dashboard & Indicadores agregados \\
+        GET & /community/decks & Assuntos públicos \\
+        POST & /community/decks/\{id\}/clone & Clonagem \\
+        POST & /admin/users/search & Admin: usuários \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Documentação complementar pode ser gerada com springdoc-openapi \cite{openapi_springdoc}.
+
+\section{Modelo de dados simplificado}
+
+Entidades centrais:
+\begin{itemize}
+    \item \textbf{User}: email, senha hash, role (\texttt{USER} ou \texttt{SUPERADMIN}).
+    \item \textbf{Deck}: título, visibilidade pública/privada, dono.
+    \item \textbf{Card}: pergunta, resposta, \texttt{difficultyLevel}, \texttt{scheduledInterval}, \texttt{dueAt}, streaks.
+\end{itemize}
+
+Relacionamentos: User 1:N Deck; Deck 1:N Card. Soft delete via \texttt{deletedAt} em \texttt{BaseEntity}.
+
+\section{Decisões arquiteturais}
+
+\begin{itemize}
+    \item \textbf{Stateless JWT}: escalabilidade horizontal do backend sem sessão servidor \cite{spring_security_jwt}.
+    \item \textbf{Specification JPA}: atende requisito de \texttt{/search} sem proliferar métodos no repository \cite{jpa_specification}.
+    \item \textbf{Expo managed workflow}: acelera entrega acadêmica; EAS Build para artefato instalável \cite{expo_eas_build}.
+    \item \textbf{NativeWind}: unifica design tokens com utilitários Tailwind, reduzindo CSS inline \cite{nativewind_docs,tailwind_docs}.
+\end{itemize}
+
+\section{Preparação para produção na arquitetura}
+
+Princípios twelve-factor \cite{twelve_factor} aplicados:
+\begin{itemize}
+    \item Configuração por variáveis de ambiente (\texttt{DATABASE\_URL}, \texttt{JWT\_SECRET}, \texttt{GOOGLE\_CLIENT\_ID}).
+    \item Logs estruturados no backend (Spring Boot default).
+    \item CORS restrito ao domínio do app \cite{helmet_cors_spring}.
+    \item Migrations Flyway executadas no startup do container Railway.
+    \item Front-end aponta \texttt{EXPO\_PUBLIC\_API\_URL} para instância publicada.
+\end{itemize}
+
+Detalhes operacionais no Capítulo~\ref{cap:deploy}.

@@ -1,0 +1,16 @@
+---
+description: Update already-done.md after implementing fixes/v*.md plans
+alwaysApply: true
+---
+
+# Update already-done.md after v*.md work
+
+When you finish implementing a plan from `fixes/v*.md` (or any `v*.md` fix/feature batch in `fixes/`):
+
+1. **Always append or update** [already-done.md](already-done.md) before considering the task complete.
+2. Add a section titled `## vN — <short title> (fixes/vN.md)` matching the source file.
+3. Summarize what changed in bullet points, grouped by **Backend**, **Frontend**, and **Tests** when relevant.
+4. Note intentional non-changes (e.g. "documented only, no scheduling change") when the plan explicitly deferred work.
+5. Do **not** edit the plan file itself unless the user asks.
+
+Skip this only if the user explicitly says not to update `already-done.md`.
