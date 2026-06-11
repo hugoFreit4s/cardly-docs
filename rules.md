@@ -1,5 +1,6 @@
 Backend repo: https://github.com/hugoFreit4s/cardly-backend
 Frontend repo: https://github.com/hugoFreit4s/cardly-rnative-app
+Docs repo: https://github.com/hugoFreit4s/cardly-docs
 
 - No comments on code (when the first agent reads this, it should look all the project for comments and remove it);
 - All commits should follow the pattern: [Action]: Commit message; example: [Feature]: Implementando toast;
