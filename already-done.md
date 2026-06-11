@@ -115,6 +115,10 @@
 ## v6 follow-up — Card advance after flip-back
 - **Study session**: when answering or skipping while the back is visible, the next card is shown only after the flip-back animation completes, preventing a brief glimpse of the next answer during the transition.
 
+## Repo hygiene — technical repos vs cardly-docs
+- Created [cardly-docs](https://github.com/hugoFreit4s/cardly-docs) for all non-technical material (`fixes/`, `already-done.md`, `todo.md`, `rules.md`, LaTeX report, agent context, Cursor plans/rules, PDFs).
+- Backend and frontend repos scrubbed: no `.cursor/` or `docs/` locally; `.gitignore` neutral; git history rewritten to remove `Co-authored-by: Cursor`, `Made-with: Cursor`, and doc/agent commit messages.
+
 ## v7 — Login error + review flow (fixes/v7.md)
 - **Login errors**: API client reads Spring `ProblemDetail` `title` when `detail`/`message` are missing; `mapApiErrorMessage` maps 401 / `"Unauthorized"` → *E-mail ou senha inválidos.* and 403 → session-expired message (no more generic **Erro 401** on bad credentials).
 - **Minhas Disciplinas**: `useFocusEffect` reloads decks on focus so **Ver revisões** appears after study (`scheduledCardCount` no longer stale).
