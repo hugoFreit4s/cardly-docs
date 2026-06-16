@@ -205,3 +205,20 @@
   - Deck detail shows **Iniciar estudo desta disciplina** before any card is answered; **Iniciar revisão desta disciplina** after study progress exists.
 - **Deploy**
   - Frontend image `hugodfreitas/cardly-frontend:v10` (dashboard refresh + deck detail labels).
+
+## v11 — In-app notifications (feature batch)
+- **Backend**
+  - Migration `V10__notifications.sql`: table `notifications` with types `REVIEW_EXPIRED`, `FRIEND_REQUEST_RECEIVED`, `FRIEND_REQUEST_ACCEPTED`.
+  - `NotificationService` + `NotificationController`: list, unread summary, mark all read, mark selected read, delete selected.
+  - Friend request hooks: notify receiver on send, notify requester on accept.
+  - `NotificationScheduler` (every 5 min): daily deduped alert when user has expired review cards (`due_at <= now`).
+- **Frontend**
+  - Notification bell (SVG Repo bell icon) on dashboard header with unread badge; polls summary every 60s and on focus.
+  - `NotificationsScreen`: mark all read, multi-select checkboxes, mark selected read, delete one or many.
+  - Notification sound via `expo-av` + `assets/notification.wav` when unread count increases.
+  - Route `Notifications` registered in `AppStack`.
+- **Tests**
+  - Added `NotificationServiceTest`; updated `FriendRequestServiceTest` mock wiring.
+  - Validation: backend `./mvnw.cmd test` (26 tests); frontend `npx tsc --noEmit` passing.
+- **Deploy**
+  - Images `hugodfreitas/cardly-backend:v11` and `hugodfreitas/cardly-frontend:v11`.
