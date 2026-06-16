@@ -186,7 +186,7 @@
   - Added `HOURS_2` to `ScheduledIntervalENUM` and migration `V8__deck_clone_and_hours_interval.sql` (updates `chk_cards_scheduled_interval`).
   - Community clone deduplication: `decks.source_deck_id` + unique index `(user_id, source_deck_id)`; duplicate clone returns `409 CONFLICT`.
   - `DeckResponse` extended with `alreadyCloned` and `clonedDeckId` for community search; `cloneDeckToUser` sets `sourceDeck` on new clones.
-  - Migration `V9__seed_prod_admin_user.sql` seeds `administrador@cardly.com` / `LoginAdministradorCardly` as `SUPERADMIN` (idempotent).
+  - Migration `V9__seed_prod_admin_user.sql` seeds `administrador@cardly.com` / `LoginAdministradorCardly` as `SUPERADMIN` (idempotent, assigns `public_id` via sequence).
 - **Frontend**
   - Fixed dashboard pie chart overflow on web: absolute center label inside fixed `180×180` container (`overflow-hidden`, no negative margin).
   - Hardened stacked bar chart: normalized segment widths to 100%, truncation on long subject names, card overflow clipping.
