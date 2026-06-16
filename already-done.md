@@ -239,3 +239,5 @@
   - Botão Google aparece quando o backend tem `CARDLY_GOOGLE_CLIENT_ID` configurado.
 - **Docs**
   - Guia `deploy/google-oauth-setup.md` para criar credencial no Google Cloud.
+- **Deploy**
+  - `TAG=v13`; `CARDLY_GOOGLE_CLIENT_ID` configurado em produção. Login Google ativo em https://cardly.hugodefreitas.com.br.
