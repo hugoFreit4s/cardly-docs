@@ -222,3 +222,10 @@
   - Validation: backend `./mvnw.cmd test` (26 tests); frontend `npx tsc --noEmit` passing.
 - **Deploy**
   - Images `hugodfreitas/cardly-backend:v11` and `hugodfreitas/cardly-frontend:v11`.
+
+### v11 follow-up — notification tap and bell size
+- **Frontend**
+  - Tapping a notification marks it as read immediately (optimistic UI + API), then navigates to Revisões or Amigos.
+  - Bell icon viewBox cropped and size increased so it matches other header icons.
+- **Deploy**
+  - Frontend image `hugodfreitas/cardly-frontend:v12` (backend unchanged at v11, retagged v12 for compose).
