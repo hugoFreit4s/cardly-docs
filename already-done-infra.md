@@ -16,8 +16,8 @@ Deploy Cardly on the **same EC2 instance as Sisges**, with:
 | Item | Location / value |
 |------|------------------|
 | Docker Hub user | `hugodfreitas` |
-| Backend image | `hugodfreitas/cardly-backend:v14` |
-| Frontend image | `hugodfreitas/cardly-frontend:v14` |
+| Backend image | `hugodfreitas/cardly-backend:v15` |
+| Frontend image | `hugodfreitas/cardly-frontend:v15` |
 | Frontend build API URL | `https://cardly.hugodefreitas.com.br` (expects host nginx `/api` → backend `:8082`) |
 | SSH key (local) | `C:\Users\ugo\.ssh\sisges-sboot-app-kp.pem` |
 | Nginx vhost template | `cardly-docs/deploy/cardly-nginx.conf` |

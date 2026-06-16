@@ -248,3 +248,10 @@
   - Título da aba: fallback `Cardly` via `documentTitle` e título do Dashboard.
 - **Deploy**
   - `hugodfreitas/cardly-frontend:v14` e `hugodfreitas/cardly-backend:v14`; EC2 `TAG=v14`.
+
+### v15 — hotfix login Google e-mail existente
+- **Backend**
+  - Login Google passa a localizar usuário por e-mail **case-insensitive** e reutilizar conta existente (evita 500 por `uq_users_email`).
+  - Normaliza e-mail gravado para minúsculas ao vincular conta Google.
+- **Deploy**
+  - `hugodfreitas/cardly-backend:v15`; frontend permanece v14 (retag v15 no compose).
