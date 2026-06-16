@@ -198,3 +198,10 @@
   - Validation executed: backend `./mvnw.cmd test` passing (23 tests); frontend `npx tsc --noEmit` passing.
 - **Deploy**
   - Production images published as `hugodfreitas/cardly-backend:v9` and `hugodfreitas/cardly-frontend:v9`; EC2 `/opt/cardly` updated to `TAG=v9`.
+
+### v9 follow-up — dashboard sync and study button copy
+- **Frontend**
+  - Dashboard reloads metrics on screen focus (`useFocusEffect`), so counts update after cloning a community disciplina.
+  - Deck detail shows **Iniciar estudo desta disciplina** before any card is answered; **Iniciar revisão desta disciplina** after study progress exists.
+- **Deploy**
+  - Frontend image `hugodfreitas/cardly-frontend:v10` (dashboard refresh + deck detail labels).
