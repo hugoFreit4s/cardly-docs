@@ -156,3 +156,45 @@
   - `references.bib`
   - section files (`introducao`, `objetivos`, `requisitos`, `arquitetura`, `backend`, `frontend`, `seguranca`, `testes`, `deploy`, `conclusao`)
 - Pending: final technical review, ABNT fine-tuning and slide-level consistency check.
+
+## v8 — Social, Dashboard Charts, and AWS Deploy (fixes/v8.md)
+- **Backend**
+  - Added social endpoints for accepted friendships: `GET /api/friends` and `GET /api/friends/{friendPublicId}/profile` (`FriendNetworkController`) with friendship guard validation in `FriendRequestService`.
+  - Extended friend repository/service logic to list accepted friends, validate bilateral accepted friendship, and expose friend summary/profile DTOs.
+  - Added dashboard chart endpoint `GET /api/dashboard/charts` with pie dataset (`due`, `scheduled`, `unscheduled`) and stacked-by-subject dataset via `DeckService.summarizeSubjects`.
+  - Extended `CardService` counters (`countDueCardsOnly`, `countWaitingCards`, `countUnscheduledCards`) and reused existing `DeckResponse` metrics for subject aggregation.
+- **Frontend**
+  - Study session now shows alert toast when user taps **Acertei/Errei** before flipping the card; action is blocked until back side is seen.
+  - Toast helper now replaces previous toast (`Toast.hide()` before `Toast.show()`), preventing toast accumulation.
+  - Friends screen now includes accepted friends list; tapping a friend opens new `FriendProfile` screen with totals (disciplinas/cartões/vencidos) and subject list.
+  - Navigation updated with `FriendProfile` route and API/type support for new social endpoints.
+  - Dashboard now supports two icon-based visualization modes: current KPI cards and chart mode (pie + stacked bars), backed by `/api/dashboard/charts`.
+  - Added chart components under `src/components/dashboard` using existing `react-native-svg` dependency (no new chart package).
+- **Tests**
+  - Extended `FriendRequestServiceTest` to cover accepted friend listing and friendship guard rejection.
+  - Added `DashboardControllerTest` validating `/charts` payload composition (pie + stacked data).
+  - Validation executed: backend `./mvnw.cmd test` passing; frontend `npx tsc --noEmit` passing.
+- **Deploy / Infra**
+  - Added production compose and env template: `docker-compose.hub.yml`, `.env.prod.example`.
+  - Added Docker Hub publish scripts: `scripts/docker-hub-publish.sh` and `scripts/docker-hub-publish.ps1`.
+  - Added AWS rollout guide for dedicated EC2 + RDS + CloudFront + domain setup: `cardly-docs/deploy/aws-cardly-v8.md`.
+  - Scope note: v8 intentionally reintroduces production deployment guidance (previous local-only infra scope from earlier versions no longer applies for this batch).
+
+## v9 — Chart layout, review intervals, clone dedup, prod admin (fixes/v9.md)
+- **Backend**
+  - Review scheduling simplified in `CardService.answerCard`: wrong answers → `HOURS_2` (2 hours), correct answers → `DAYS_1` (1 day), flat regardless of streak.
+  - Added `HOURS_2` to `ScheduledIntervalENUM` and migration `V8__deck_clone_and_hours_interval.sql` (updates `chk_cards_scheduled_interval`).
+  - Community clone deduplication: `decks.source_deck_id` + unique index `(user_id, source_deck_id)`; duplicate clone returns `409 CONFLICT`.
+  - `DeckResponse` extended with `alreadyCloned` and `clonedDeckId` for community search; `cloneDeckToUser` sets `sourceDeck` on new clones.
+  - Migration `V9__seed_prod_admin_user.sql` seeds `administrador@cardly.com` / `LoginAdministradorCardly` as `SUPERADMIN` (idempotent).
+- **Frontend**
+  - Fixed dashboard pie chart overflow on web: absolute center label inside fixed `180×180` container (`overflow-hidden`, no negative margin).
+  - Hardened stacked bar chart: normalized segment widths to 100%, truncation on long subject names, card overflow clipping.
+  - Community screen shows **Abrir minha cópia** when `alreadyCloned`; reloads list after clone; maps duplicate-clone API error to PT-BR.
+  - `ScheduledInterval` type includes `HOURS_2`.
+- **Tests**
+  - Updated `CardServiceTest` for 2h wrong / 1d correct scheduling.
+  - Added `DeckServiceTest` for duplicate clone rejection.
+  - Validation executed: backend `./mvnw.cmd test` passing (23 tests); frontend `npx tsc --noEmit` passing.
+- **Deploy**
+  - Production images published as `hugodfreitas/cardly-backend:v9` and `hugodfreitas/cardly-frontend:v9`; EC2 `/opt/cardly` updated to `TAG=v9`.
