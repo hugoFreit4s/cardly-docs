@@ -229,3 +229,13 @@
   - Bell icon viewBox cropped and size increased so it matches other header icons.
 - **Deploy**
   - Frontend image `hugodfreitas/cardly-frontend:v12` (backend unchanged at v11, retagged v12 for compose).
+
+### v13 — Google SSO em produção
+- **Backend**
+  - `GET /api/auth/config` expõe `googleWebClientId` e `googleAuthEnabled` (público).
+- **Frontend**
+  - Client ID carregado em runtime da API (fallback para variáveis de build).
+  - Web usa `@react-oauth/google`; mobile mantém Expo Auth Session.
+  - Botão Google aparece quando o backend tem `CARDLY_GOOGLE_CLIENT_ID` configurado.
+- **Docs**
+  - Guia `deploy/google-oauth-setup.md` para criar credencial no Google Cloud.
