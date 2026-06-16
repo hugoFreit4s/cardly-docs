@@ -241,3 +241,10 @@
   - Guia `deploy/google-oauth-setup.md` para criar credencial no Google Cloud.
 - **Deploy**
   - `TAG=v13`; `CARDLY_GOOGLE_CLIENT_ID` configurado em produção. Login Google ativo em https://cardly.hugodefreitas.com.br.
+
+### v14 — hotfix tela branca (Google SSO web)
+- **Frontend**
+  - Separados `GoogleLoginButton.web` / `.native` para não importar `expo-auth-session` no bundle web (causava crash e tela branca).
+  - Título da aba: fallback `Cardly` via `documentTitle` e título do Dashboard.
+- **Deploy**
+  - `hugodfreitas/cardly-frontend:v14` e `hugodfreitas/cardly-backend:v14`; EC2 `TAG=v14`.
