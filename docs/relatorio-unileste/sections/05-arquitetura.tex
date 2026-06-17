@@ -1,0 +1,63 @@
+\chapter{Design e Arquitetura}
+\label{cap:arquitetura}
+
+\section{Visão Lógica e de Componentes}
+
+A arquitetura segue o padrão cliente-servidor em três camadas no back-end e organização por features no front-end \cite{tanenbaum2015,pressman2020}.
+
+\textbf{Back-end (Spring Boot):}
+\begin{itemize}
+    \item \textbf{Controllers} --- expõem endpoints REST (\texttt{/api/auth}, \texttt{/api/decks}, \texttt{/api/cards}, \texttt{/api/friends}, \texttt{/api/notifications}, \texttt{/api/admin}).
+    \item \textbf{Services} --- concentram regras de negócio (agendamento de revisão espaçada, soft delete, notificações agendadas).
+    \item \textbf{Repositories} --- acesso JPA ao PostgreSQL; Specifications para filtros paginados \cite{jpa_specification}.
+    \item \textbf{Security} --- filtro JWT, \texttt{UserDetailsService}, OAuth Google e roles \cite{spring_security_jwt,jwt_io}.
+\end{itemize}
+
+\textbf{Front-end (React Native/Expo):}
+\begin{itemize}
+    \item \textbf{Navegação} --- stacks autenticado/não autenticado com React Navigation \cite{react_navigation}.
+    \item \textbf{Telas} --- login, dashboard, disciplinas, detalhe da disciplina (cartões), estudo, comunidade, amigos, notificações, admin.
+    \item \textbf{Serviços/Hooks} --- cliente HTTP com token, contexto de autenticação e configuração Google em runtime \cite{mdn_fetch}.
+    \item \textbf{AdminScreen} --- listagens de usuários e disciplinas implementadas com \texttt{FlatList}, componente nativo do React Native para listas roláveis com boa performance \cite{react_native_docs}.
+\end{itemize}
+
+\section{Visão de Dados}
+
+Principais entidades e relacionamentos:
+\begin{itemize}
+    \item \textbf{User} --- credenciais, papel (\texttt{USER}/\texttt{SUPERADMIN}), código público, soft delete.
+    \item \textbf{Deck (disciplina)} --- pertence a um usuário; flag \texttt{public}; ordem de exibição.
+    \item \textbf{Card} --- pergunta/resposta, \texttt{dueAt}, streaks, dificuldade e intervalo agendado.
+    \item \textbf{FriendRequest} --- remetente, destinatário, status e timestamps.
+    \item \textbf{Notification} --- tipo, payload JSON, lida/não lida, usuário destino.
+    \item \textbf{StudyReview} --- histórico de respostas para dashboard e calendário.
+\end{itemize}
+
+Migrations Flyway (\texttt{V1}--\texttt{V11}) evoluem o esquema de forma incremental \cite{flyway_docs,postgresql_docs}.
+
+\subsection{Diagrama de dados}
+
+Para documentação do modelo relacional, foi preparado um script DBML compatível com dbdiagram.io em \texttt{cardly-docs/assets/diagrama-dados-dbdiagram.dbml}. A captura gerada na plataforma pode ser inserida na figura abaixo.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth,keepaspectratio]{data_diagram.png}
+\caption{Diagrama de dados do Cardly}
+\label{fig:diagrama-dados}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+\section{Visão Física e de Implantação}
+
+\begin{figure}[htb]
+\centering
+\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\small
+\textbf{Arquitetura cliente-servidor}\\[0.3em]
+Cliente (Expo Web / Android / iOS) $\rightarrow$ API REST (Spring Boot) $\rightarrow$ PostgreSQL
+\vspace{1.2cm}}}
+\caption{Visão física simplificada do Cardly}
+\label{fig:implantacao}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+Em ambiente de desenvolvimento, front-end e back-end rodam localmente (Expo + Spring Boot embarcado). Opcionalmente, a equipe publicou uma instância em nuvem para facilitar a demonstração na apresentação --- recurso extra, não exigido pelo professor \cite{twelve_factor,docker_postgres}.

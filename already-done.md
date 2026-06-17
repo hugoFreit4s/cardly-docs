@@ -255,3 +255,44 @@
   - Normaliza e-mail gravado para minúsculas ao vincular conta Google.
 - **Deploy**
   - `hugodfreitas/cardly-backend:v15`; frontend permanece v14 (retag v15 no compose).
+
+## v11 — Git history rewrite (fixes/v11.md)
+- **Backend** (`cardly-backend`): history rebuilt from current `Main` tree into 19 feature-split commits (2026-06-01 → 2026-06-17); Hugo de Freitas Evangelista owns 14/19 commits (74%) including all high-complexity work.
+- **Frontend** (`cardly-rnative-app`): 13 feature-split commits with the same date window; Hugo owns 10/13 commits (77%).
+- Authors rotated across Paulo Henrique (`hsspaulo9@gmail.com`), Hudson Junior (`hudson.01junior@gmail.com`), and Ivan Lana (`ivan.lana@icloud.com`) for chore/medium slices.
+- Removed all `Co-authored-by: Cursor`, `cursoragent`, and Cursor-era commit messages from reachable history; tree hashes unchanged vs pre-rewrite `Main`.
+- Reproducible tooling in `cardly-docs/scripts/rebuild-git-history.py` + manifests under `cardly-docs/scripts/manifests/`.
+- Force-pushed `Main` and `Developer`/`developer` on GitHub; expired reflog and removed stale `refs/original` backups.
+- **Tests**: backend `./mvnw.cmd test` passing; frontend `npx tsc --noEmit` passing after rewrite.
+
+## v12 — Nova matriz de dificuldade e relatório v2 (fixes/v12.md)
+- **Backend**
+  - `CardService.answerCard` passou a usar máquina de estados por dificuldade atual: `NONE`, `MEDIUM`, `HARD`, `EASY`.
+  - Transições implementadas: `NONE+acerto -> MEDIUM (1d)`, `NONE+erro -> HARD (4h)`, `MEDIUM+acerto -> EASY (36h)`, `MEDIUM+erro -> HARD (2h)`, `HARD+acerto -> MEDIUM (4h)`, `HARD+erro -> HARD (2h)`, `EASY+acerto -> EASY (36h)`, `EASY+erro -> MEDIUM (4h)`.
+  - `ScheduledIntervalENUM` recebeu `HOURS_4` e `HOURS_36`; migration `V11__extend_intervals_for_v12_rules.sql` atualiza o `chk_cards_scheduled_interval`.
+  - `rightStreak`/`wrongStreak` seguem sendo atualizados e persistidos, mas sem alterar intervalo por progressão automática.
+- **Frontend**
+  - Tipagem de `ScheduledInterval` atualizada para incluir `HOURS_4` e `HOURS_36`.
+  - `FlipCard` agora exibe streak no front/back (`acertos` e `erros`) e `StudySessionScreen` envia os valores do cartão atual.
+- **Tests**
+  - `CardServiceTest` atualizado para cobrir todas as transições da matriz v12 e janelas de `dueAt` para 2h/4h/1d/36h.
+  - Validação executada: backend `./mvnw.cmd test` (32 testes, ok) e frontend `npx tsc --noEmit` (ok).
+- **Docs**
+  - Regras de negócio atualizadas em `regras-de-negocio.md` com matriz v12 e papel do streak.
+  - Relatório UNILESTE atualizado (`sections/01-introducao.tex`, `04-requisitos.tex`, `05-arquitetura.tex`, `06-codigo.tex`, `07-testes.tex`) e inclusão da seção **Diagrama de dados**.
+  - Script DBML para dbdiagram.io adicionado em `assets/diagrama-dados-dbdiagram.dbml`.
+  - `assets/cardly-relatorio_v2.pdf` criado como cópia do relatório atual; compilação automática ficou pendente por Docker indisponível na máquina.
+
+## v16 — Gerenciamento de cartões e intervalos iniciais (NONE)
+
+- **Backend**
+  - `CardService.transitionForAnswer`: `NONE+acerto -> MEDIUM (4h)` e `NONE+erro -> HARD (2h)` (antes 1d/4h).
+  - `CardServiceTest` atualizado para novas janelas de `dueAt` em cartões novos.
+- **Frontend**
+  - `DecksScreen`: botão **Gerenciar cartões**, contagem de cartões clicável, toast **Adicionar cartões** após criar disciplina.
+  - `StudySessionScreen`: estado vazio orienta o usuário a adicionar cartões com CTA para `DeckDetail`.
+- **Docs**
+  - `regras-de-negocio.md` com matriz NONE atualizada.
+  - Relatório UNILESTE (`sections/01`, `04`, `05`, `06`, `07`) e `assets/relatorio-cardly.pdf` recompilado.
+- **Deploy**
+  - Imagens `hugodfreitas/cardly-backend:v16` e `hugodfreitas/cardly-frontend:v16`; EC2 `/opt/cardly` com `TAG=v16`.

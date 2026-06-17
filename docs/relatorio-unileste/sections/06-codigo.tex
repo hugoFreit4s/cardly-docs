@@ -1,0 +1,48 @@
+\chapter{Explicação de Trechos Importantes de Código}
+\label{cap:codigo}
+
+O agendamento de revisão é a regra de negócio central do Cardly: define quando o cartão volta à fila após acerto, erro ou skip. O trecho abaixo, extraído do \texttt{CardService}, implementa a máquina de estados adotada na versão v12 e registra a revisão para o dashboard \cite{anki_manual,medium_spaced_repetition,spring_boot_docs}.
+
+\begin{lstlisting}[language=Java,caption={Transição de dificuldade após resposta do usuário},label=lst:answer-card]
+@Transactional
+public CardResponse answerCard(Card card, AnswerCardRequest request) {
+    if (request.correct()) {
+        card.setRightStreak(card.getRightStreak() + 1);
+        card.setWrongStreak(0);
+    } else {
+        card.setRightStreak(0);
+        card.setWrongStreak(card.getWrongStreak() + 1);
+    }
+
+    ScheduleTransition t = transitionForAnswer(
+        card.getDifficultyLevel(), request.correct());
+    applySchedule(card, t.difficulty(), t.interval());
+
+    Card saved = cardRepository.save(card);
+    studyReviewService.registerReview(saved,
+        request.correct() ? ReviewResultENUM.CORRECT : ReviewResultENUM.WRONG);
+    return toResponse(saved);
+}
+
+private ScheduleTransition transitionForAnswer(
+        DifficultyLevelENUM level, boolean correct) {
+    return switch (level) {
+        case NONE -> correct
+            ? new ScheduleTransition(MEDIUM, HOURS_4)
+            : new ScheduleTransition(HARD, HOURS_2);
+        case MEDIUM -> correct
+            ? new ScheduleTransition(EASY, HOURS_36)
+            : new ScheduleTransition(HARD, HOURS_2);
+        case HARD -> correct
+            ? new ScheduleTransition(MEDIUM, HOURS_4)
+            : new ScheduleTransition(HARD, HOURS_2);
+        case EASY -> correct
+            ? new ScheduleTransition(EASY, HOURS_36)
+            : new ScheduleTransition(MEDIUM, HOURS_4);
+    };
+}
+\end{lstlisting}
+
+\textbf{Explicação técnica:} o método é transacional para garantir consistência entre atualização do cartão e registro histórico. O streak continua sendo atualizado a cada resposta (acertos consecutivos em \texttt{rightStreak} e erros consecutivos em \texttt{wrongStreak}), porém o intervalo é definido exclusivamente pela matriz de transição por dificuldade atual (\texttt{NONE}, \texttt{MEDIUM}, \texttt{HARD}, \texttt{EASY}). Esse desenho mantém previsibilidade dos intervalos e facilita validação por testes automatizados. O controller correspondente exige JWT válido e verifica ownership do cartão antes de delegar ao serviço \cite{spring_security_jwt,stackoverflow_jwt_spring}.
+
+No front-end, a sessão de estudo consome \texttt{GET /api/cards/due} e envia \texttt{POST /api/cards/\{id\}/answer} ou \texttt{/skip}, atualizando a fila local após cada interação \cite{react_native_docs,mdn_fetch}.

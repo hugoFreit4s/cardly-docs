@@ -1,0 +1,51 @@
+\chapter{Requisitos do Sistema}
+\label{cap:requisitos}
+
+\section{Requisitos Funcionais}
+
+\begin{quadro}[htb]
+\caption{Matriz de Requisitos Funcionais}
+\label{quad:rf}
+\begin{tabular}{p{1.2cm}p{5.5cm}p{5.5cm}}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Critério de Aceite} \\
+\midrule
+RF-01 & O sistema deve permitir cadastro de usuário com e-mail e senha. & Conta criada; e-mail único; senha entre 8 e 128 caracteres. \\
+RF-02 & O sistema deve permitir login com e-mail e senha. & Token JWT retornado; credenciais inválidas retornam erro genérico. \\
+RF-03 & O sistema deve permitir login com conta Google (SSO). & E-mail verificado; conta existente reativada ou nova conta criada. \\
+RF-04 & O usuário deve poder excluir a própria conta. & Soft delete; disciplinas e cartões do usuário também excluídos logicamente. \\
+RF-05 & O usuário deve gerenciar disciplinas (criar, editar, excluir, reordenar). & CRUD persistido; dono exclusivo da disciplina. \\
+RF-06 & O usuário deve definir disciplina como pública ou privada. & Disciplinas públicas visíveis na comunidade. \\
+RF-07 & O usuário deve gerenciar cartões (criar, editar, excluir). & Cartão vinculado à disciplina do usuário; acesso via \textbf{Gerenciar cartões} em Minhas Disciplinas. \\
+RF-08 & O usuário deve responder cartões em sessão de estudo ou revisão. & Resposta aplica transição por dificuldade atual (\texttt{NONE}/\texttt{MEDIUM}/\texttt{HARD}/\texttt{EASY}) com intervalos 2h, 4h ou 36h; cartão some da fila até vencer. \\
+RF-09 & O usuário deve poder pular cartão sem marcar acerto/erro. & Cartão reagendado conforme dificuldade/intervalo atuais. \\
+RF-10 & O usuário deve visualizar progresso no dashboard. & Métricas de estudo, streak e calendário de dias com atividade. \\
+RF-11 & O usuário deve enviar, aceitar, recusar e cancelar solicitações de amizade. & Amizade via código público de 6 dígitos; estados PENDING/ACCEPTED/DENIED. \\
+RF-12 & O usuário deve clonar disciplinas públicas da comunidade. & Cópia independente na coleção do usuário. \\
+RF-13 & O usuário deve receber notificações de revisão vencida e amizades. & Lista, marcar lida, excluir e som opcional no app. \\
+RF-14 & O SUPERADMIN deve gerenciar usuários, disciplinas e cartões globalmente. & Painel admin com CRUD e busca paginada. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelos autores (2026).}
+\end{quadro}
+
+\section{Requisitos Não Funcionais}
+
+\begin{quadro}[htb]
+\caption{Matriz de Requisitos Não Funcionais}
+\label{quad:rnf}
+\begin{tabular}{p{1.2cm}p{3.5cm}p{7.5cm}}
+\toprule
+\textbf{ID} & \textbf{Categoria} & \textbf{Restrição / Métrica} \\
+\midrule
+RNF-01 & Desempenho & Respostas da API adequadas ao uso simultâneo em demonstração acadêmica. \\
+RNF-02 & Segurança & Senhas com BCrypt; JWT HS256 com expiração de 1 h; rotas protegidas por filtro Spring Security. \\
+RNF-03 & Configurabilidade & Variáveis de ambiente para URL da API e credenciais; preparação opcional para deploy em nuvem. \\
+RNF-04 & Portabilidade & Front-end único em React Native/Expo para Android, iOS e web. \\
+RNF-05 & Manutenibilidade & Migrations Flyway versionadas; camadas Controller/Service/Repository no back-end. \\
+RNF-06 & Usabilidade & Feedback visual (toasts, modais); flip de cartão acionado por toque; ícones e navegação consistentes. \\
+RNF-07 & Documentação & Relatório ABNT, regras de negócio e referências bibliográficas rastreáveis. \\
+\bottomrule
+\end{tabular}
+\fonte{Elaborado pelos autores (2026).}
+\end{quadro}

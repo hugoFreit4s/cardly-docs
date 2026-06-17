@@ -1,0 +1,20 @@
+\chapter{Introdução}
+\label{cap:introducao}
+
+\section{Contextualização}
+
+A memorização de longo prazo exige revisões distribuídas no tempo, princípio consolidado pela repetição espaçada e popularizado por ferramentas como o Anki \cite{anki_manual,anki_sm2}. Estudantes de Engenharia de Software precisam dominar múltiplas disciplinas simultaneamente, mas muitas soluções genéricas não integram estudo mobile, progresso visual e compartilhamento de conteúdo em um único ecossistema \cite{pressman2020,sommerville2019}.
+
+A disciplina de Sistemas Móveis exige demonstração prática de integração entre front-end React Native e back-end Spring Boot, com autenticação, CRUD e comunicação via API REST \cite{react_native_docs,spring_boot_docs,tanenbaum2015}. O Cardly nasce nesse contexto: um projeto acadêmico, sem fins comerciais, que replica funcionalidades centrais de flashcards e revisão espaçada.
+
+\section{Justificativa}
+
+Flashcards são adequados para avaliar integração completa porque combinam regras de negócio não triviais (agendamento de revisões, sessões de estudo e revisão distintas, visibilidade pública/privada de disciplinas) com demandas de UX mobile (animação de virada de cartão, feedback imediato, dashboard) \cite{anki_manual,medium_spaced_repetition,w3schools_flip}.
+
+A equipe optou por stack amplamente documentada --- Expo, TypeScript, Spring Boot e PostgreSQL --- para reduzir risco em um time do sétimo semestre com pouca experiência prévia em desenvolvimento mobile \cite{expo_docs,youtube_expo_typescript,stackoverflow_jwt_spring}. Como sugestão complementar do professor, o grupo também preparou o sistema para deploy em nuvem, embora isso não fosse requisito obrigatório da avaliação \cite{twelve_factor}.
+
+\section{Relevância da Solução Proposta}
+
+O Cardly oferece estudo individual com repetição espaçada por máquina de estados (\texttt{NONE}, \texttt{MEDIUM}, \texttt{HARD}, \texttt{EASY}) e intervalos fixos de 2h, 4h e 36h, comunidade para clonar disciplinas públicas, rede de amigos por código numérico, notificações de revisão vencida e solicitações pendentes, além de painel SUPERADMIN para gestão global. A solução demonstra arquitetura cliente-servidor, segurança com JWT e OAuth Google, organização em camadas (Controller, Service, Repository no back-end; telas, hooks e serviços no front-end) e documentação formal em ABNT \cite{abnt_nbr14724,jwt_io,google_oauth}.
+
+O código-fonte está disponível nos repositórios GitHub do projeto (\url{https://github.com/hugoFreit4s/cardly-backend} e \url{https://github.com/hugoFreit4s/cardly-rnative-app}).

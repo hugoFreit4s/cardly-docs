@@ -1,0 +1,85 @@
+\chapter{Testes e Validação}
+\label{cap:testes}
+
+\section{Cenários de Teste}
+
+Os cenários abaixo foram executados manualmente no ambiente de desenvolvimento e homologação, complementados por testes automatizados no back-end quando aplicável \cite{junit5_spring}.
+
+\begin{enumerate}
+    \item \textbf{Autenticação} --- cadastro, login e-mail/senha, login Google, token expirado retorna 401.
+    \item \textbf{Disciplinas e cartões} --- CRUD completo em Minhas Disciplinas (botão \textbf{Gerenciar cartões}); disciplina pública aparece na comunidade; clone gera cópia independente.
+    \item \textbf{Estudo} --- validar matriz de transição: \texttt{NONE + acerto = MEDIUM + 4h}, \texttt{NONE + erro = HARD + 2h}, \texttt{MEDIUM + acerto = EASY + 36h}, \texttt{MEDIUM + erro = HARD + 2h}, além de transições de \texttt{HARD} e \texttt{EASY}.
+    \item \textbf{Amigos} --- solicitação por código \#123456; aceitar/recusar/cancelar atualiza estado e notificações.
+    \item \textbf{Notificações} --- scheduler gera alerta de revisão vencida; usuário marca lida ao tocar.
+    \item \textbf{Admin} --- SUPERADMIN lista/edita/exclui usuários e conteúdo de terceiros.
+\end{enumerate}
+
+\section{Visão do Usuário}
+
+As capturas a seguir ilustram o fluxo do usuário comum: autenticação, dashboard, notificações e sessão de estudo. Legendas e fontes seguem o padrão ABNT \cite{abnt_nbr14724}.
+
+\subsection{Figuras}
+
+\begin{figure}[htb]
+\centering
+\capturatela{tela_login.png}
+\caption{Tela de autenticação do Cardly (e-mail, senha e Google SSO)}
+\label{fig:login}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\capturatela{dashboard_user.png}
+\caption{Dashboard do usuário --- visão geral de progresso (sem gráficos)}
+\label{fig:dashboard}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\capturatela{dashboard_charts_user.png}
+\caption{Dashboard do usuário --- visão com gráficos de desempenho}
+\label{fig:dashboard-charts}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\capturatela{notifications_user.png}
+\caption{Tela de notificações (revisões vencidas e solicitações de amizade)}
+\label{fig:notifications}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\capturatela{card_view.png}
+\caption{Sessão de estudo --- visualização e interação com cartão (flip)}
+\label{fig:card-view}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+\section{Visão do Administrador}
+
+O painel \texttt{SUPERADMIN} utiliza o componente \texttt{FlatList} do React Native nas listagens de usuários e de disciplinas, garantindo rolagem eficiente mesmo com muitos registros retornados pela API administrativa \cite{react_native_docs}. As figuras abaixo referem-se exclusivamente a essa visão gerencial.
+
+\subsection{Figuras}
+
+\begin{figure}[htb]
+\centering
+\capturatela{user_list_adm.png}
+\caption{Painel administrativo --- listagem de usuários (\texttt{FlatList})}
+\label{fig:admin-users}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\capturatela{subject_list_adm.png}
+\caption{Painel administrativo --- listagem de disciplinas (\texttt{FlatList})}
+\label{fig:admin-subjects}
+\fonte{Elaborado pelos autores (2026).}
+\end{figure}
+
+As capturas administrativas foram obtidas durante a validação funcional do painel \texttt{SUPERADMIN}, com legendas e fontes no padrão ABNT \cite{abnt_nbr14724}.
