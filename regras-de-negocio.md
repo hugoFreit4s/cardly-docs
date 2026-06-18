@@ -282,7 +282,9 @@ Ao clonar:
 - Todos os cartões são copiados (**pergunta e resposta**), mas **sem progresso** (como cartões novos)
 - A cópia vai para o final da lista do usuário
 
-Se já existir clone, a interface mostra **“Abrir minha cópia”** em vez de clonar de novo.
+Se já existir clone ativo, a interface mostra **“Abrir minha cópia”** em vez de clonar de novo.
+
+Se o usuário **excluir a cópia** em Minhas Disciplinas, pode clonar a mesma disciplina novamente. A aba **Comunidade** recarrega a listagem ao retornar, exibindo **Clonar** em vez de manter o estado antigo.
 
 **Observação:** clonar é diferente de criar manualmente duas disciplinas com o mesmo nome — o sistema só impede **duplicata de clone da mesma origem**, não nomes repetidos criados à mão.
 

@@ -296,3 +296,14 @@
   - Relatório UNILESTE (`sections/01`, `04`, `05`, `06`, `07`) e `assets/relatorio-cardly.pdf` recompilado.
 - **Deploy**
   - Imagens `hugodfreitas/cardly-backend:v16` e `hugodfreitas/cardly-frontend:v16`; EC2 `/opt/cardly` com `TAG=v16`.
+
+## v17 — Comunidade após excluir clone
+
+- **Backend**
+  - `DeckServiceTest.searchCommunityDecksShowsCloneActionWhenUserHasNoActiveClone`: garante `alreadyCloned=false` quando não há cópia ativa (inclui após soft delete).
+- **Frontend**
+  - `CommunityScreen`: `useFocusEffect` recarrega a listagem ao focar a aba (evita botão **Abrir minha cópia** obsoleto após excluir a cópia).
+- **Docs**
+  - `regras-de-negocio.md` §6 e relatório (`07-testes.tex`) atualizados; `assets/relatorio-cardly.pdf` recompilado.
+- **Deploy**
+  - Imagens `hugodfreitas/cardly-backend:v17` e `hugodfreitas/cardly-frontend:v17`; EC2 `/opt/cardly` com `TAG=v17`.
