@@ -307,3 +307,12 @@
   - `regras-de-negocio.md` §6 e relatório (`07-testes.tex`) atualizados; `assets/relatorio-cardly.pdf` recompilado.
 - **Deploy**
   - Imagens `hugodfreitas/cardly-backend:v17` e `hugodfreitas/cardly-frontend:v17`; EC2 `/opt/cardly` com `TAG=v17`.
+
+## v18 — Exclusão de disciplina persistida (soft delete)
+
+- **Backend**
+  - `DeckService.softDeleteDeck` e `CardService.softDeleteCard` passam a recarregar a entidade gerenciada no repositório antes de setar `deletedAt` (corrige entidade destacada vinda de transação read-only no controller).
+  - Sintoma corrigido: disciplina sumia da UI mas reaparecia sem cartões ao reabrir Minhas Disciplinas; Comunidade mantinha **Abrir minha cópia** apontando para deck fantasma.
+  - `DeckServiceTest.softDeleteDeckSetsDeletedAtOnManagedDeckAndCards` adicionado.
+- **Deploy**
+  - Imagem `hugodfreitas/cardly-backend:v18`; frontend permanece v17.
