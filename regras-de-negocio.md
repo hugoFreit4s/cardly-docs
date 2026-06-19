@@ -181,14 +181,14 @@ O próximo nível e intervalo dependem do nível atual:
 
 | Nível atual | Resposta | Próximo nível | Próximo intervalo |
 |-------------|----------|---------------|-------------------|
-| `NONE` | Acertei | `MEDIUM` | **4 horas** |
-| `NONE` | Errei | `HARD` | **2 horas** |
+| `NONE` | Acertei | `MEDIUM` | **2 horas** |
+| `NONE` | Errei | `HARD` | **4 horas** |
 | `MEDIUM` | Acertei | `EASY` | **36 horas** |
-| `MEDIUM` | Errei | `HARD` | **2 horas** |
-| `HARD` | Acertei | `MEDIUM` | **4 horas** |
-| `HARD` | Errei | `HARD` | **2 horas** |
+| `MEDIUM` | Errei | `HARD` | **4 horas** |
+| `HARD` | Acertei | `MEDIUM` | **2 horas** |
+| `HARD` | Errei | `HARD` | **4 horas** |
 | `EASY` | Acertei | `EASY` | **36 horas** |
-| `EASY` | Errei | `MEDIUM` | **4 horas** |
+| `EASY` | Errei | `MEDIUM` | **2 horas** |
 
 ### Pular
 
@@ -446,8 +446,8 @@ flowchart TD
 
 | Nome interno | Tempo até próxima revisão | Usado hoje? |
 |--------------|---------------------------|-------------|
-| 2 horas | 2 horas | **Sim** (`NONE + erro`, `MEDIUM + erro`, `HARD + erro`) |
-| 4 horas | 4 horas | **Sim** (`NONE + acerto`, `HARD + acerto`, `EASY + erro`) |
+| 2 horas | 2 horas | **Sim** (`NONE + acerto`, `HARD + acerto`, `EASY + erro`) |
+| 4 horas | 4 horas | **Sim** (`NONE + erro`, `MEDIUM + erro`, `HARD + erro`) |
 | 36 horas | 1 dia e 12 horas | **Sim** (`MEDIUM + acerto`, `EASY + acerto`) |
 | 1 dia | 1 dia | **Sim** (padrão inicial ao pular cartão novo) |
 | 2 dias | 2 dias | Não |
